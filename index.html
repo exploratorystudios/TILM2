@@ -1,0 +1,2449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TILM2 Neural Visualizer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0d1f3c;
+    color: #c8d8f0;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  #sidebar {
+    width: 290px;
+    min-width: 290px;
+    background: linear-gradient(180deg, #111e38 0%, #0a1628 100%);
+    border-right: 1px solid #1a3560;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 18px 16px;
+    gap: 14px;
+    z-index: 10;
+  }
+
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-track { background: transparent; }
+  #sidebar::-webkit-scrollbar-thumb { background: #1a3060; border-radius: 2px; }
+
+  .title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #f0c060;
+    letter-spacing: 0.05em;
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #1a3560;
+    text-shadow: 0 0 12px rgba(240,192,96,0.5);
+  }
+
+  .subtitle {
+    font-size: 10px;
+    color: #5080b0;
+    text-align: center;
+    margin-top: -8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #4a80c0;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .file-btn {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    background: #0e2040;
+    border: 1px solid #1a3a60;
+    border-radius: 6px;
+    color: #80b0e0;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+
+  .file-btn:hover { background: #142848; border-color: #2a5090; color: #a0d0ff; }
+  .file-btn.loaded { border-color: #20c060; color: #60e090; background: #061c10; }
+
+  input[type="file"] { display: none; }
+
+  #drop-zone {
+    padding: 8px 10px;
+    border: 1px dashed #2a5090;
+    border-radius: 6px;
+    color: #80b0e0;
+    font-size: 11px;
+    line-height: 1.35;
+    background: #081428;
+  }
+
+  #drop-zone.dragover {
+    border-color: #f0c060;
+    color: #f0c060;
+    background: #142848;
+  }
+
+  #status {
+    font-size: 11px;
+    color: #507090;
+    padding: 6px 10px;
+    background: #081428;
+    border-radius: 4px;
+    border-left: 2px solid #1a3060;
+    min-height: 32px;
+    line-height: 1.4;
+  }
+
+  #status.ok { color: #40d080; border-left-color: #20a050; }
+  #status.err { color: #e06050; border-left-color: #903020; }
+  #status.gen { color: #f0c060; border-left-color: #a07020; }
+
+  label.ctrl-label {
+    font-size: 11px;
+    color: #608090;
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 6px 10px;
+    background: #081428;
+    border: 1px solid #1a3050;
+    border-radius: 5px;
+    color: #b0d0f0;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input[type="text"]:focus, input[type="number"]:focus {
+    border-color: #3060a0;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #0d2040;
+    border-radius: 2px;
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #4080d0;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 6px rgba(64,128,208,0.6);
+  }
+
+  .slider-val {
+    font-size: 11px;
+    color: #7090b0;
+    min-width: 32px;
+    text-align: right;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 8px 4px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+  }
+
+  .btn-run {
+    background: linear-gradient(135deg, #1a5030, #204020);
+    color: #60f0a0;
+    border: 1px solid #30a060;
+  }
+  .btn-run:hover { background: linear-gradient(135deg, #25703d, #2a5530); box-shadow: 0 0 10px rgba(48,160,96,0.4); }
+
+  .btn-step {
+    background: linear-gradient(135deg, #1a3060, #152040);
+    color: #60a0f0;
+    border: 1px solid #3060b0;
+  }
+  .btn-step:hover { background: linear-gradient(135deg, #204080, #1a2d60); box-shadow: 0 0 10px rgba(48,96,176,0.4); }
+
+  .btn-stop {
+    background: linear-gradient(135deg, #3a1010, #2a0a0a);
+    color: #f06060;
+    border: 1px solid #903030;
+  }
+  .btn-stop:hover { background: linear-gradient(135deg, #501818, #381010); }
+
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+
+  #output {
+    width: 100%;
+    height: 100px;
+    background: #081428;
+    border: 1px solid #0d2040;
+    border-radius: 5px;
+    color: #c0e0ff;
+    font-size: 12px;
+    padding: 8px;
+    resize: none;
+    font-family: 'Courier New', monospace;
+    line-height: 1.5;
+    outline: none;
+  }
+
+  #output::-webkit-scrollbar { width: 4px; }
+  #output::-webkit-scrollbar-thumb { background: #1a3060; }
+
+  #canvas-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #three-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  #token-overlay {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(13, 31, 60, 0.88);
+    border: 1px solid #2a4a80;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-size: 14px;
+    color: #f0c060;
+    text-align: center;
+    pointer-events: none;
+    display: none;
+    text-shadow: 0 0 8px rgba(240,192,96,0.6);
+    backdrop-filter: blur(4px);
+    min-width: 160px;
+  }
+
+  #token-overlay .word-text { font-size: 22px; font-weight: 700; letter-spacing: 0.06em; color: #ffe090; }
+  #token-overlay .syl-text  { font-size: 13px; font-weight: 500; letter-spacing: 0.10em; color: #80a8d0; margin-top: 2px; }
+  #token-overlay .syl-info  { font-size: 10px; color: #507090; margin-top: 2px; }
+
+  #layer-legend {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(13,31,60,0.82);
+    border: 1px solid #1a3560;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: #8090b0;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* HTML overlay labels for 3D scene */
+  .layer-label {
+    position: absolute;
+    pointer-events: none;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #c8d8f0;
+    text-shadow: 0 0 6px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.7);
+    white-space: nowrap;
+    transform: translate(-50%, -50%);
+    background: rgba(13,31,60,0.6);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid rgba(80,120,200,0.3);
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div>
+    <div class="title">TILM2 Neural Visualizer</div>
+    <div class="subtitle">Syllable Language Model</div>
+  </div>
+
+  <div>
+    <div class="section-label">Load Model</div>
+    <label>
+      <div class="file-btn" id="npz-btn">&#128230; Load Weights (.npz)</div>
+      <input type="file" id="npz-file" accept=".npz">
+    </label>
+    <label style="margin-top:6px;">
+      <div class="file-btn" id="json-btn">&#128196; Load Vocab (.json)</div>
+      <input type="file" id="json-file" accept=".json">
+    </label>
+    <label style="margin-top:6px;">
+      <div class="file-btn" id="lex-btn">&#128214; Load Lexicon (.json) <span style="color:#e07030;font-size:10px;" id="lex-hint">← needed for English words</span></div>
+      <input type="file" id="lex-file" accept=".json">
+    </label>
+    <div id="drop-zone" style="margin-top:8px;">Drop .npz, vocab.json, or project_lexicon.json here</div>
+  </div>
+
+  <div id="status">Visualizer patched 2026-05-02. Use the load buttons or drop files below.</div>
+
+  <div>
+    <div class="section-label">Generation</div>
+    <label class="ctrl-label">Seed text (optional)</label>
+    <input type="text" id="seed-input" placeholder="Leave blank to start fresh">
+  </div>
+
+  <div>
+    <label class="ctrl-label">Temperature <span id="temp-val" class="slider-val">0.50</span></label>
+    <div class="slider-row">
+      <input type="range" id="temp-slider" min="0.1" max="2.0" step="0.05" value="0.50">
+    </div>
+  </div>
+
+  <div>
+    <label class="ctrl-label">Top-K</label>
+    <input type="number" id="topk-input" value="3" min="1" max="50">
+  </div>
+
+  <div>
+    <label class="ctrl-label">Generation speed <span id="speed-val" class="slider-val">600ms</span></label>
+    <div class="slider-row">
+      <input type="range" id="speed-slider" min="0" max="3000" step="50" value="600">
+    </div>
+  </div>
+
+  <div>
+    <label class="ctrl-label">Propagation speed <span id="prop-val" class="slider-val">80ms</span></label>
+    <div class="slider-row">
+      <input type="range" id="prop-slider" min="20" max="3000" step="10" value="80">
+    </div>
+  </div>
+
+  <div>
+    <label class="ctrl-label">Syllables to generate</label>
+    <input type="number" id="nsyl-input" value="30" min="1" max="200">
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-run" id="btn-run" disabled>Generate</button>
+    <button class="btn btn-step" id="btn-step" disabled>Step</button>
+    <button class="btn btn-stop" id="btn-stop" disabled>Stop</button>
+  </div>
+
+  <div>
+    <div class="section-label">Output</div>
+    <textarea id="output" readonly placeholder="Generated text will appear here..."></textarea>
+  </div>
+</div>
+
+<div id="canvas-container">
+  <canvas id="three-canvas"></canvas>
+  <div id="token-overlay">
+    <div class="word-text" id="word-text"></div>
+    <div class="syl-text" id="syl-text"></div>
+    <div class="syl-info" id="syl-info"></div>
+  </div>
+  <div id="layer-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#c8882a;"></div>Context (10 pos)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2ab8c8;"></div>H1 (2x99)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2a88e8;"></div>H2 (2x99)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f0c040;"></div>Discourse State</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f08030;"></div>Word State</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#a060f0;"></div>Output Heads</div>
+  </div>
+  <!-- HTML overlay labels, repositioned each frame -->
+  <div class="layer-label" id="lbl-context">Context (10x85)</div>
+  <div class="layer-label" id="lbl-h1-0">H1 — chunk 0</div>
+  <div class="layer-label" id="lbl-h1-1">H1 — chunk 1</div>
+  <div class="layer-label" id="lbl-h2-0">H2 — chunk 0</div>
+  <div class="layer-label" id="lbl-h2-1">H2 — chunk 1</div>
+  <div class="layer-label" id="lbl-disc">Discourse State (16)</div>
+  <div class="layer-label" id="lbl-word">Word State (8)</div>
+  <div class="layer-label" id="lbl-heads">Factored Output Heads</div>
+  <div class="layer-label" id="lbl-role">role</div>
+  <div class="layer-label" id="lbl-wb">wb</div>
+  <div class="layer-label" id="lbl-stress">stress</div>
+  <div class="layer-label" id="lbl-nucleus">nucleus</div>
+  <div class="layer-label" id="lbl-onset">onset</div>
+  <div class="layer-label" id="lbl-coda">coda</div>
+</div>
+
+<!-- CDN Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+window.addEventListener('error', (event) => {
+  const msg = event.message || (event.error && event.error.message) || 'Unknown script error';
+  const el = document.getElementById('status');
+  if (el) {
+    el.textContent = 'Script error: ' + msg;
+    el.className = 'err';
+  }
+  console.error('[TILM2] Script error:', event.error || msg);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  const msg = event.reason && event.reason.message ? event.reason.message : String(event.reason);
+  const el = document.getElementById('status');
+  if (el) {
+    el.textContent = 'Async error: ' + msg;
+    el.className = 'err';
+  }
+  console.error('[TILM2] Async error:', event.reason);
+});
+
+// ============================================================
+// OrbitControls (inline, adapted from Three.js r128)
+// ============================================================
+if (window.THREE) {
+THREE.OrbitControls = function(object, domElement) {
+  this.object = object;
+  this.domElement = domElement;
+  this.enabled = true;
+  this.target = new THREE.Vector3();
+  this.autoRotate = false;
+  this.autoRotateSpeed = 1.0;
+  this.enableDamping = true;
+  this.dampingFactor = 0.05;
+
+  var scope = this;
+  var STATE = { NONE: -1, ROTATE: 0, DOLLY: 1, PAN: 2 };
+  var state = STATE.NONE;
+  var spherical = new THREE.Spherical();
+  var sphericalDelta = new THREE.Spherical();
+  var scale = 1;
+  var rotateStart = new THREE.Vector2();
+  var rotateEnd = new THREE.Vector2();
+  var rotateDelta = new THREE.Vector2();
+  var panStart = new THREE.Vector2();
+  var panEnd = new THREE.Vector2();
+  var panDelta = new THREE.Vector2();
+  var panOffset = new THREE.Vector3();
+  var dollyStart = new THREE.Vector2();
+  var dollyEnd = new THREE.Vector2();
+  var dollyDelta = new THREE.Vector2();
+
+  var position0 = object.position.clone();
+  var target0 = this.target.clone();
+  var zoom0 = object.zoom;
+
+  this.saveState = function() {
+    position0.copy(scope.object.position);
+    target0.copy(scope.target);
+    zoom0 = scope.object.zoom;
+  };
+
+  function rotateLeft(angle) { sphericalDelta.theta -= angle; }
+  function rotateUp(angle) { sphericalDelta.phi -= angle; }
+
+  var panLeftV = new THREE.Vector3();
+  function panLeft(distance, objectMatrix) {
+    panLeftV.setFromMatrixColumn(objectMatrix, 0);
+    panLeftV.multiplyScalar(-distance);
+    panOffset.add(panLeftV);
+  }
+  var panUpV = new THREE.Vector3();
+  function panUp(distance, objectMatrix) {
+    panUpV.setFromMatrixColumn(objectMatrix, 1);
+    panUpV.multiplyScalar(distance);
+    panOffset.add(panUpV);
+  }
+  var panInternalOffset = new THREE.Vector3();
+  function pan(deltaX, deltaY) {
+    var el = scope.domElement;
+    if (scope.object.isPerspectiveCamera) {
+      var position = scope.object.position;
+      panInternalOffset.copy(position).sub(scope.target);
+      var targetDistance = panInternalOffset.length();
+      targetDistance *= Math.tan((scope.object.fov / 2) * Math.PI / 180.0);
+      panLeft(2 * deltaX * targetDistance / el.clientHeight, scope.object.matrix);
+      panUp(2 * deltaY * targetDistance / el.clientHeight, scope.object.matrix);
+    }
+  }
+
+  function dollyIn(dollyScale) { scale /= dollyScale; }
+  function dollyOut(dollyScale) { scale *= dollyScale; }
+
+  this.update = function() {
+    var offset = new THREE.Vector3();
+    var quat = new THREE.Quaternion().setFromUnitVectors(object.up, new THREE.Vector3(0, 1, 0));
+    var quatInverse = quat.clone().invert();
+    var lastPosition = new THREE.Vector3();
+    var lastQuaternion = new THREE.Quaternion();
+
+    return function update() {
+      var position = scope.object.position;
+      offset.copy(position).sub(scope.target);
+      offset.applyQuaternion(quat);
+      spherical.setFromVector3(offset);
+
+      if (scope.autoRotate && state === STATE.NONE) {
+        rotateLeft(2 * Math.PI / 60 / 60 * scope.autoRotateSpeed);
+      }
+
+      if (scope.enableDamping) {
+        spherical.theta += sphericalDelta.theta * scope.dampingFactor;
+        spherical.phi += sphericalDelta.phi * scope.dampingFactor;
+      } else {
+        spherical.theta += sphericalDelta.theta;
+        spherical.phi += sphericalDelta.phi;
+      }
+
+      spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
+      spherical.radius *= scale;
+      spherical.radius = Math.max(1, Math.min(200, spherical.radius));
+      scope.target.add(panOffset);
+      offset.setFromSpherical(spherical);
+      offset.applyQuaternion(quatInverse);
+      position.copy(scope.target).add(offset);
+      scope.object.lookAt(scope.target);
+
+      if (scope.enableDamping) {
+        sphericalDelta.theta *= (1 - scope.dampingFactor);
+        sphericalDelta.phi *= (1 - scope.dampingFactor);
+      } else {
+        sphericalDelta.set(0, 0, 0);
+      }
+      scale = 1;
+      panOffset.set(0, 0, 0);
+      return false;
+    };
+  }();
+
+  function onMouseDown(event) {
+    if (!scope.enabled) return;
+    event.preventDefault();
+    if (event.button === 0) {
+      state = STATE.ROTATE;
+      rotateStart.set(event.clientX, event.clientY);
+    } else if (event.button === 1) {
+      state = STATE.DOLLY;
+      dollyStart.set(event.clientX, event.clientY);
+    } else if (event.button === 2) {
+      state = STATE.PAN;
+      panStart.set(event.clientX, event.clientY);
+    }
+    document.addEventListener('mousemove', onMouseMove, false);
+    document.addEventListener('mouseup', onMouseUp, false);
+  }
+
+  function onMouseMove(event) {
+    if (!scope.enabled) return;
+    event.preventDefault();
+    if (state === STATE.ROTATE) {
+      rotateEnd.set(event.clientX, event.clientY);
+      rotateDelta.subVectors(rotateEnd, rotateStart).multiplyScalar(0.005);
+      rotateLeft(rotateDelta.x);
+      rotateUp(rotateDelta.y);
+      rotateStart.copy(rotateEnd);
+    } else if (state === STATE.PAN) {
+      panEnd.set(event.clientX, event.clientY);
+      panDelta.subVectors(panEnd, panStart).multiplyScalar(0.01);
+      pan(panDelta.x, panDelta.y);
+      panStart.copy(panEnd);
+    } else if (state === STATE.DOLLY) {
+      dollyEnd.set(event.clientX, event.clientY);
+      dollyDelta.subVectors(dollyEnd, dollyStart);
+      if (dollyDelta.y > 0) dollyIn(1.1); else dollyOut(1.1);
+      dollyStart.copy(dollyEnd);
+    }
+  }
+
+  function onMouseUp() {
+    document.removeEventListener('mousemove', onMouseMove, false);
+    document.removeEventListener('mouseup', onMouseUp, false);
+    state = STATE.NONE;
+  }
+
+  function onWheel(event) {
+    if (!scope.enabled) return;
+    event.preventDefault();
+    if (event.deltaY < 0) dollyOut(1.1); else dollyIn(1.1);
+  }
+
+  domElement.addEventListener('mousedown', onMouseDown, false);
+  domElement.addEventListener('wheel', onWheel, { passive: false });
+  domElement.addEventListener('contextmenu', e => e.preventDefault(), false);
+
+  this.dispose = function() {
+    domElement.removeEventListener('mousedown', onMouseDown, false);
+    domElement.removeEventListener('wheel', onWheel, false);
+  };
+};
+}
+
+// ============================================================
+// .npy parser
+// ============================================================
+function parseNpy(buffer) {
+  const view = new DataView(buffer);
+  // Check magic: \x93NUMPY
+  if (view.getUint8(0) !== 0x93 || view.getUint8(1) !== 0x4e) {
+    throw new Error('Not a valid .npy file');
+  }
+  const major = view.getUint8(6);
+  let headerLen, dataOffset;
+  if (major === 1) {
+    headerLen = view.getUint16(8, true);
+    dataOffset = 10 + headerLen;
+  } else {
+    headerLen = view.getUint32(8, true);
+    dataOffset = 12 + headerLen;
+  }
+
+  const headerBytes = new Uint8Array(buffer, 10, headerLen);
+  let headerStr = '';
+  for (let i = 0; i < headerLen; i++) headerStr += String.fromCharCode(headerBytes[i]);
+
+  // Parse dtype
+  const dtypeMatch = headerStr.match(/'descr'\s*:\s*'([^']+)'/);
+  if (!dtypeMatch) throw new Error('No dtype in npy header');
+  const dtype = dtypeMatch[1];
+
+  // Parse shape
+  const shapeMatch = headerStr.match(/'shape'\s*:\s*\(([^)]*)\)/);
+  if (!shapeMatch) throw new Error('No shape in npy header');
+  const shapeStr = shapeMatch[1].trim();
+  const shape = shapeStr === '' ? [] : shapeStr.split(',').map(s => s.trim()).filter(s => s !== '').map(Number);
+
+  // Parse fortran_order
+  const fortranMatch = headerStr.match(/'fortran_order'\s*:\s*(True|False)/);
+  const fortranOrder = fortranMatch && fortranMatch[1] === 'True';
+
+  const nElements = shape.reduce((a, b) => a * b, 1);
+
+  let data;
+  if (dtype === '<f4' || dtype === 'float32') {
+    data = new Float32Array(buffer, dataOffset, nElements);
+  } else if (dtype === '<f8' || dtype === 'float64') {
+    data = new Float64Array(buffer, dataOffset, nElements);
+  } else if (dtype === '<i4' || dtype === 'int32') {
+    data = new Int32Array(buffer, dataOffset, nElements);
+  } else if (dtype === '<i8' || dtype === 'int64') {
+    // Int64 not natively supported, read as pairs
+    const raw = new BigInt64Array(buffer, dataOffset, nElements);
+    data = new Float64Array(nElements);
+    for (let i = 0; i < nElements; i++) data[i] = Number(raw[i]);
+  } else if (dtype === '<u4') {
+    data = new Uint32Array(buffer, dataOffset, nElements);
+  } else {
+    // Fallback: try float32
+    data = new Float32Array(buffer, dataOffset, nElements);
+  }
+
+  // Convert to Float64Array for consistent math
+  const f64 = new Float64Array(nElements);
+  for (let i = 0; i < nElements; i++) f64[i] = data[i];
+
+  return { shape, data: f64, fortranOrder };
+}
+
+// ============================================================
+// .npz parser
+// ============================================================
+async function parseNpz(arrayBuffer) {
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const result = {};
+  const promises = [];
+  zip.forEach((relativePath, file) => {
+    if (relativePath.endsWith('.npy')) {
+      const key = relativePath.replace(/\.npy$/, '');
+      promises.push(
+        file.async('arraybuffer').then(buf => {
+          result[key] = parseNpy(buf);
+        })
+      );
+    }
+  });
+  await Promise.all(promises);
+  return result;
+}
+
+// ============================================================
+// Math utilities
+// ============================================================
+function matvec(A, rows, cols, x) {
+  // A: Float64Array row-major [rows x cols], x: Float64Array [cols] -> Float64Array [rows]
+  const out = new Float64Array(rows);
+  for (let r = 0; r < rows; r++) {
+    let sum = 0;
+    const roff = r * cols;
+    for (let c = 0; c < cols; c++) sum += A[roff + c] * x[c];
+    out[r] = sum;
+  }
+  return out;
+}
+
+function matvecAdd(out, A, rows, cols, x) {
+  // out += A @ x (in-place)
+  for (let r = 0; r < rows; r++) {
+    let sum = 0;
+    const roff = r * cols;
+    for (let c = 0; c < cols; c++) sum += A[roff + c] * x[c];
+    out[r] += sum;
+  }
+}
+
+function relu(x) {
+  const out = new Float64Array(x.length);
+  for (let i = 0; i < x.length; i++) out[i] = x[i] > 0 ? x[i] : 0;
+  return out;
+}
+
+function tanh(x) {
+  const out = new Float64Array(x.length);
+  for (let i = 0; i < x.length; i++) {
+    const v = Math.max(-10, Math.min(10, x[i]));
+    out[i] = Math.tanh(v);
+  }
+  return out;
+}
+
+function softmax(x, temperature) {
+  const out = new Float64Array(x.length);
+  let maxV = -Infinity;
+  for (let i = 0; i < x.length; i++) { const v = x[i] / temperature; if (v > maxV) maxV = v; }
+  let sum = 0;
+  for (let i = 0; i < x.length; i++) { out[i] = Math.exp(x[i] / temperature - maxV); sum += out[i]; }
+  for (let i = 0; i < x.length; i++) out[i] /= sum;
+  return out;
+}
+
+function topKSample(probs, k) {
+  // Get top-k indices, sample from them
+  const indexed = Array.from(probs).map((p, i) => [p, i]);
+  indexed.sort((a, b) => b[0] - a[0]);
+  const topK = indexed.slice(0, Math.min(k, indexed.length));
+  let sum = 0;
+  for (const [p] of topK) sum += p;
+  let r = Math.random() * sum;
+  for (const [p, i] of topK) { r -= p; if (r <= 0) return i; }
+  return topK[topK.length - 1][1];
+}
+
+function vecAdd(a, b) {
+  const out = new Float64Array(a.length);
+  for (let i = 0; i < a.length; i++) out[i] = a[i] + b[i];
+  return out;
+}
+
+function concat(...arrays) {
+  let len = 0;
+  for (const a of arrays) len += a.length;
+  const out = new Float64Array(len);
+  let offset = 0;
+  for (const a of arrays) { out.set(a, offset); offset += a.length; }
+  return out;
+}
+
+// ============================================================
+// Model state
+// ============================================================
+let weights = null;
+let vocabData = null;
+let hparams = null;
+let phonoMask = null; // { on_nuc: [n_onsets][n_nuclei], on_nuc_cod: [n_onsets][n_nuclei][n_codas] }
+let trainingWindows = null;
+let lexiconWords = null; // {"word": [{onset,nucleus,coda,stress}, ...]}
+
+let context = [];
+let generating = false;
+let stopFlag = false;
+
+// ============================================================
+// Word decoding (port of Python decode_tokens_to_words)
+// ============================================================
+let decodeLexicon = null;       // {"onset,nuc,coda,stress|...": "word"}
+let decodeLexiconNoStress = null; // {"onset,nuc,coda|...": "word"}
+
+function cloneToken(tok) {
+  return {
+    onset: tok.onset || '',
+    nucleus: tok.nucleus || '',
+    coda: tok.coda || '',
+    stress: Math.min(tok.stress ?? 0, 2),
+    word_boundary: !!tok.word_boundary,
+  };
+}
+
+function splitWords(tokens) {
+  // word_boundary=true marks the FIRST syllable of a new word
+  const words = [];
+  let current = [];
+  for (const tok of tokens) {
+    if (tok.word_boundary && current.length > 0) {
+      words.push(current);
+      current = [];
+    }
+    current.push(tok);
+  }
+  if (current.length > 0) words.push(current);
+  return words;
+}
+
+function wordKey(toks, withStress) {
+  return toks.map(t =>
+    withStress
+      ? `${t.onset},${t.nucleus},${t.coda},${t.stress}`
+      : `${t.onset},${t.nucleus},${t.coda}`
+  ).join('|');
+}
+
+function decodeWord(toks) {
+  if (decodeLexicon) {
+    const k = wordKey(toks, true);
+    if (decodeLexicon[k]) return decodeLexicon[k];
+  }
+  if (decodeLexiconNoStress) {
+    const k = wordKey(toks, false);
+    if (decodeLexiconNoStress[k]) return decodeLexiconNoStress[k];
+  }
+  // Fallback: raw phonemes in brackets
+  return '[' + toks.map(t => t.onset + t.nucleus + t.coda).join('').toLowerCase() + ']';
+}
+
+function decodeTokensToWords(tokens) {
+  if (!tokens || tokens.length === 0) return '';
+  return splitWords(tokens).map(decodeWord).join(' ');
+}
+
+function normalizeSeedWord(word) {
+  return word.toLowerCase().replace(/[^a-z']/g, '');
+}
+
+function lexiconWordToTokens(word) {
+  if (!lexiconWords) return null;
+  const entry = lexiconWords[normalizeSeedWord(word)];
+  if (!entry || !Array.isArray(entry) || entry.length === 0) return null;
+  return entry.map((tok, idx) => ({
+    onset: tok.onset || '',
+    nucleus: tok.nucleus || '',
+    coda: tok.coda || '',
+    stress: Math.min(tok.stress ?? 0, 2),
+    word_boundary: idx === 0,
+  }));
+}
+
+// ============================================================
+// Weight extraction helpers
+// ============================================================
+function getWeight(key) {
+  if (!weights[key]) return null;
+  return weights[key].data;
+}
+
+function getWeightShape(key) {
+  if (!weights[key]) return null;
+  return weights[key].shape;
+}
+
+function getChunks(prefix) {
+  // Collect all W_{prefix}_r{i}_c{j} chunks
+  const chunks = {};
+  for (const key of Object.keys(weights)) {
+    const m = key.match(new RegExp(`^${prefix}_r(\\d+)_c(\\d+)$`));
+    if (m) {
+      const r = parseInt(m[1]), c = parseInt(m[2]);
+      if (!chunks[r]) chunks[r] = {};
+      chunks[r][c] = weights[key];
+    }
+  }
+  return chunks;
+}
+
+function getRowChunks(prefix) {
+  // Collect W_{prefix}_{i} chunks (1D, no _r/_c)
+  const chunks = {};
+  for (const key of Object.keys(weights)) {
+    const m = key.match(new RegExp(`^${prefix}_(\\d+)$`));
+    if (m) {
+      chunks[parseInt(m[1])] = weights[key];
+    }
+  }
+  return chunks;
+}
+
+// ============================================================
+// Model initialization
+// ============================================================
+function initModel() {
+  const hp = weights['_hparams'];
+  if (!hp) { setStatus('Missing _hparams in weights', 'err'); return false; }
+
+  const [context_len, embed_dim, hidden_dim, disc_dim, word_dim] = hp.data;
+  hparams = {
+    context_len: Math.round(context_len),
+    embed_dim: Math.round(embed_dim),
+    hidden_dim: Math.round(hidden_dim),
+    disc_dim: Math.round(disc_dim),
+    word_dim: Math.round(word_dim),
+  };
+  hparams.token_dim = 4 * hparams.embed_dim + 1;
+  hparams.state_dim = hparams.disc_dim + hparams.word_dim;
+  hparams.input_dim = hparams.context_len * hparams.token_dim + hparams.state_dim;
+  hparams.chunk_size = 99;
+  hparams.n_chunks = Math.ceil(hparams.hidden_dim / hparams.chunk_size);
+  hparams.n_input_col_chunks = Math.ceil(hparams.input_dim / hparams.chunk_size);
+
+  // Build starts
+  hparams.input_col_starts = [];
+  for (let j = 0; j <= hparams.n_input_col_chunks; j++) {
+    hparams.input_col_starts.push(Math.min(j * hparams.chunk_size, hparams.input_dim));
+  }
+  hparams.h_col_starts = [];
+  for (let j = 0; j <= hparams.n_chunks; j++) {
+    hparams.h_col_starts.push(Math.min(j * hparams.chunk_size, hparams.hidden_dim));
+  }
+  hparams.n_h_col_chunks = hparams.n_chunks; // same as n_chunks since hidden_dim is the col
+
+  return true;
+}
+
+// ============================================================
+// Token encoding
+// ============================================================
+function encodeToken(tok) {
+  const { onset_to_idx, nucleus_to_idx, coda_to_idx } = vocabData;
+  const oi = onset_to_idx[tok.onset] ?? 0;
+  const ni = nucleus_to_idx[tok.nucleus] ?? 0;
+  const ci = coda_to_idx[tok.coda] ?? 0;
+  const si = Math.min(tok.stress ?? 0, 2);
+  const wb = tok.word_boundary ? 1 : 0;
+
+  const ed = hparams.embed_dim;
+  const E_onset = weights['E_onset'].data;
+  const E_nucleus = weights['E_nucleus'].data;
+  const E_coda = weights['E_coda'].data;
+  const E_stress = weights['E_stress'].data;
+  const E_wb = weights['E_wb'].data;
+
+  const out = new Float64Array(hparams.token_dim);
+  let offset = 0;
+  for (let i = 0; i < ed; i++) out[offset++] = E_onset[oi * ed + i];
+  for (let i = 0; i < ed; i++) out[offset++] = E_nucleus[ni * ed + i];
+  for (let i = 0; i < ed; i++) out[offset++] = E_coda[ci * ed + i];
+  for (let i = 0; i < ed; i++) out[offset++] = E_stress[si * ed + i];
+  out[offset] = E_wb[wb]; // E_wb is (2, 1) -> shape [2,1]
+  return out;
+}
+
+function stateFromContext(ctx) {
+  const { disc_dim, word_dim } = hparams;
+  let disc = new Float64Array(disc_dim);
+  let word = new Float64Array(word_dim);
+  let prev_wb = 1;
+
+  const W_disc_in = weights['W_disc_in'].data;
+  const W_disc_h = weights['W_disc_h'].data;
+  const b_disc = weights['b_disc'].data;
+  const W_word_in = weights['W_word_in'].data;
+  const W_word_h = weights['W_word_h'].data;
+  const W_word_disc = weights['W_word_disc'].data;
+  const b_word = weights['b_word'].data;
+
+  for (const tok of ctx) {
+    const vec = encodeToken(tok);
+    const word_prev = prev_wb ? new Float64Array(word_dim) : word;
+
+    // disc = tanh(W_disc_in @ vec + W_disc_h @ disc + b_disc)
+    const d1 = matvec(W_disc_in, disc_dim, hparams.token_dim, vec);
+    const d2 = matvec(W_disc_h, disc_dim, disc_dim, disc);
+    const d3 = new Float64Array(disc_dim);
+    for (let i = 0; i < disc_dim; i++) d3[i] = d1[i] + d2[i] + b_disc[i];
+    disc = tanh(d3);
+
+    // word = tanh(W_word_in @ vec + W_word_h @ word_prev + W_word_disc @ disc + b_word)
+    const w1 = matvec(W_word_in, word_dim, hparams.token_dim, vec);
+    const w2 = matvec(W_word_h, word_dim, word_dim, word_prev);
+    const w3 = matvec(W_word_disc, word_dim, disc_dim, disc);
+    const w4 = new Float64Array(word_dim);
+    for (let i = 0; i < word_dim; i++) w4[i] = w1[i] + w2[i] + w3[i] + b_word[i];
+    word = tanh(w4);
+
+    prev_wb = tok.word_boundary ? 1 : 0;
+  }
+  return { disc, word };
+}
+
+function encodeContext(context) {
+  const { context_len, token_dim, disc_dim, word_dim, input_dim } = hparams;
+  const ctx = context.slice(-context_len);
+  const vecs = [];
+  // Pad with zeros
+  for (let i = ctx.length; i < context_len; i++) vecs.push(new Float64Array(token_dim));
+  for (const tok of ctx) vecs.push(encodeToken(tok));
+
+  const { disc, word } = stateFromContext(ctx);
+  const parts = [...vecs, disc, word];
+  return concat(...parts);
+}
+
+// ============================================================
+// Forward pass
+// ============================================================
+function forwardH2(context) {
+  const { hidden_dim, disc_dim, word_dim, state_dim, input_dim, chunk_size, n_chunks, n_input_col_chunks, input_col_starts, h_col_starts } = hparams;
+
+  const x = encodeContext(context);
+  const disc_state = x.slice(input_dim - state_dim, input_dim - word_dim);
+  const word_state = x.slice(input_dim - word_dim);
+
+  // H1
+  const h1 = new Float64Array(hidden_dim);
+  const b_h = weights['b_h'].data;
+  for (let i = 0; i < n_chunks; i++) {
+    const row_start = i * chunk_size;
+    const row_end = Math.min(row_start + chunk_size, hidden_dim);
+    const rows = row_end - row_start;
+    const pre = new Float64Array(rows);
+    for (let r = 0; r < rows; r++) pre[r] = b_h[row_start + r];
+
+    for (let j = 0; j < n_input_col_chunks; j++) {
+      const col_s = input_col_starts[j];
+      const col_e = input_col_starts[j + 1];
+      const cols = col_e - col_s;
+      const chunk = weights[`W_h_r${i}_c${j}`];
+      if (chunk) {
+        const xSlice = x.subarray(col_s, col_e);
+        matvecAdd(pre, chunk.data, rows, cols, xSlice);
+      }
+    }
+
+    // State conditioning
+    const Wd = weights[`W_disc_h1_${i}`];
+    if (Wd) matvecAdd(pre, Wd.data, rows, disc_dim, disc_state);
+    const Ww = weights[`W_word_h1_${i}`];
+    if (Ww) matvecAdd(pre, Ww.data, rows, word_dim, word_state);
+
+    const activated = relu(pre);
+    h1.set(activated, row_start);
+  }
+
+  // H2
+  const h2 = new Float64Array(hidden_dim);
+  const b_h2 = weights['b_h2'].data;
+  for (let i = 0; i < n_chunks; i++) {
+    const row_start = i * chunk_size;
+    const row_end = Math.min(row_start + chunk_size, hidden_dim);
+    const rows = row_end - row_start;
+    const pre = new Float64Array(rows);
+    for (let r = 0; r < rows; r++) pre[r] = b_h2[row_start + r];
+
+    for (let j = 0; j < n_chunks; j++) {
+      const col_s = h_col_starts[j];
+      const col_e = h_col_starts[j + 1];
+      const cols = col_e - col_s;
+      const chunk = weights[`W_h2_r${i}_c${j}`];
+      if (chunk) {
+        const h1Slice = h1.subarray(col_s, col_e);
+        matvecAdd(pre, chunk.data, rows, cols, h1Slice);
+      }
+    }
+
+    const Wd = weights[`W_disc_h2_${i}`];
+    if (Wd) matvecAdd(pre, Wd.data, rows, disc_dim, disc_state);
+    const Ww = weights[`W_word_h2_${i}`];
+    if (Ww) matvecAdd(pre, Ww.data, rows, word_dim, word_state);
+
+    const activated = relu(pre);
+    h2.set(activated, row_start);
+  }
+
+  return { h1, h2, disc_state, word_state };
+}
+
+function headLogits(prefix, bias_key, h2) {
+  const { hidden_dim, chunk_size, n_h_col_chunks, h_col_starts } = hparams;
+  const bias = weights[bias_key].data;
+  const out = new Float64Array(bias.length);
+  for (let i = 0; i < bias.length; i++) out[i] = bias[i];
+
+  for (let i = 0; i < n_h_col_chunks; i++) {
+    const col_s = h_col_starts[i];
+    const col_e = h_col_starts[i + 1];
+    const cols = col_e - col_s;
+    const nClasses = bias.length;
+    const chunk = weights[`${prefix}_${i}`];
+    if (chunk) {
+      matvecAdd(out, chunk.data, nClasses, cols, h2.subarray(col_s, col_e));
+    }
+  }
+  return out;
+}
+
+// ============================================================
+// Phonotactic mask builder
+// ============================================================
+function buildPhonoMask(windows) {
+  if (!vocabData || !windows) return;
+  const { onsets, nuclei, codas, onset_to_idx, nucleus_to_idx, coda_to_idx } = vocabData;
+  const nO = onsets.length, nN = nuclei.length, nC = codas.length;
+
+  // on_nuc: Uint32Array nO x nN
+  const on_nuc = new Uint32Array(nO * nN);
+  // on_nuc_cod: Uint32Array nO x nN x nC
+  const on_nuc_cod = new Uint32Array(nO * nN * nC);
+
+  for (const win of windows) {
+    const tokens = [...(win.context || []), win.target].filter(Boolean);
+    for (const tok of tokens) {
+      if (!tok) continue;
+      const oi = onset_to_idx[tok.onset] ?? 0;
+      const ni = nucleus_to_idx[tok.nucleus] ?? 0;
+      const ci = coda_to_idx[tok.coda] ?? 0;
+      on_nuc[oi * nN + ni]++;
+      on_nuc_cod[oi * nN * nC + ni * nC + ci]++;
+    }
+  }
+
+  phonoMask = {
+    on_nuc,
+    on_nuc_cod,
+    nO, nN, nC
+  };
+}
+
+function applyNucMask(logits, oi) {
+  if (!phonoMask) return logits;
+  const { on_nuc, nO, nN } = phonoMask;
+  const out = new Float64Array(logits.length);
+  for (let ni = 0; ni < nN; ni++) {
+    out[ni] = on_nuc[oi * nN + ni] > 0 ? logits[ni] : -1e9;
+  }
+  return out;
+}
+
+function applyCodaMask(logits, oi, ni) {
+  if (!phonoMask) return logits;
+  const { on_nuc_cod, nO, nN, nC } = phonoMask;
+  const out = new Float64Array(logits.length);
+  for (let ci = 0; ci < nC; ci++) {
+    out[ci] = on_nuc_cod[oi * nN * nC + ni * nC + ci] > 0 ? logits[ci] : -1e9;
+  }
+  return out;
+}
+
+// ============================================================
+// Generate one syllable
+// ============================================================
+function generateOneSyllable(ctx, temperature, topK, history = [], repPenalty = 0.5, repWindow = 15) {
+  const { disc_dim, word_dim, embed_dim, n_chunks, chunk_size, hidden_dim } = hparams;
+  const { h1, h2, disc_state, word_state } = forwardH2(ctx);
+
+  function applyRepPenalty(logits, component) {
+    if (repPenalty <= 0 || !history.length) return;
+    const idxMap = component === 'onset' ? vocabData.onset_to_idx :
+                   component === 'nucleus' ? vocabData.nucleus_to_idx : vocabData.coda_to_idx;
+    const recent = history.slice(-repWindow);
+    for (const tok of recent) {
+      const idx = idxMap[tok[component]] ?? 0;
+      logits[idx] -= repPenalty;
+    }
+  }
+
+  // Role
+  let role_logits = headLogits('W_role', 'b_role', h2);
+  if (weights['W_disc_role']) matvecAdd(role_logits, weights['W_disc_role'].data, vocabData.roles.length, disc_dim, disc_state);
+  if (weights['W_word_role']) matvecAdd(role_logits, weights['W_word_role'].data, vocabData.roles.length, word_dim, word_state);
+  const role_probs = softmax(role_logits, temperature);
+
+  // WB
+  let wb_logits = headLogits('W_wb', 'b_wb', h2);
+  if (weights['W_disc_wb']) matvecAdd(wb_logits, weights['W_disc_wb'].data, 2, disc_dim, disc_state);
+  if (weights['W_word_wb']) matvecAdd(wb_logits, weights['W_word_wb'].data, 2, word_dim, word_state);
+  if (weights['W_role_wb']) matvecAdd(wb_logits, weights['W_role_wb'].data, 2, vocabData.roles.length, role_probs);
+  const wb_probs = softmax(wb_logits, temperature);
+  const wb_idx = topKSample(wb_probs, topK);
+
+  // Stress
+  let stress_logits = headLogits('W_stress', 'b_stress', h2);
+  if (weights['W_disc_stress']) matvecAdd(stress_logits, weights['W_disc_stress'].data, 3, disc_dim, disc_state);
+  if (weights['W_word_stress']) matvecAdd(stress_logits, weights['W_word_stress'].data, 3, word_dim, word_state);
+  if (weights['W_role_stress']) matvecAdd(stress_logits, weights['W_role_stress'].data, 3, vocabData.roles.length, role_probs);
+  const stress_probs = softmax(stress_logits, temperature);
+  const stress_idx = topKSample(stress_probs, topK);
+
+  // Preliminary nucleus (for onset gate)
+  let nuc_raw_logits = headLogits('W_nucleus', 'b_nucleus', h2);
+  if (weights['W_disc_nucleus']) matvecAdd(nuc_raw_logits, weights['W_disc_nucleus'].data, vocabData.nuclei.length, disc_dim, disc_state);
+  if (weights['W_word_nucleus']) matvecAdd(nuc_raw_logits, weights['W_word_nucleus'].data, vocabData.nuclei.length, word_dim, word_state);
+  if (weights['W_role_nucleus']) matvecAdd(nuc_raw_logits, weights['W_role_nucleus'].data, vocabData.nuclei.length, vocabData.roles.length, role_probs);
+  // wb_feat: one-hot for wb
+  const wb_feat = new Float64Array(2);
+  wb_feat[wb_idx] = 1;
+  if (weights['W_wb_nucleus']) matvecAdd(nuc_raw_logits, weights['W_wb_nucleus'].data, vocabData.nuclei.length, 2, wb_feat);
+  const nuc_raw = softmax(nuc_raw_logits, temperature);
+
+  // Onset (gated by nuc + stress)
+  let onset_logits = headLogits('W_onset', 'b_onset', h2);
+  if (weights['W_disc_onset']) matvecAdd(onset_logits, weights['W_disc_onset'].data, vocabData.onsets.length, disc_dim, disc_state);
+  if (weights['W_word_onset']) matvecAdd(onset_logits, weights['W_word_onset'].data, vocabData.onsets.length, word_dim, word_state);
+  if (weights['W_role_onset']) matvecAdd(onset_logits, weights['W_role_onset'].data, vocabData.onsets.length, vocabData.roles.length, role_probs);
+  if (weights['W_wb_onset']) matvecAdd(onset_logits, weights['W_wb_onset'].data, vocabData.onsets.length, 2, wb_feat);
+  if (weights['W_nuc_gate']) {
+    const gate_out = matvec(weights['W_nuc_gate'].data, vocabData.onsets.length, vocabData.nuclei.length, nuc_raw);
+    for (let i = 0; i < onset_logits.length; i++) onset_logits[i] += gate_out[i];
+    if (weights['b_nuc_gate']) for (let i = 0; i < onset_logits.length; i++) onset_logits[i] += weights['b_nuc_gate'].data[i];
+  }
+  if (weights['W_stress_gate']) {
+    const sgate_out = matvec(weights['W_stress_gate'].data, vocabData.onsets.length, 3, stress_probs);
+    for (let i = 0; i < onset_logits.length; i++) onset_logits[i] += sgate_out[i];
+    if (weights['b_stress_gate']) for (let i = 0; i < onset_logits.length; i++) onset_logits[i] += weights['b_stress_gate'].data[i];
+  }
+  applyRepPenalty(onset_logits, 'onset');
+  const onset_probs = softmax(onset_logits, temperature);
+  const onset_idx = topKSample(onset_probs, topK);
+
+  // Onset embedding
+  const onset_emb = new Float64Array(embed_dim);
+  for (let i = 0; i < embed_dim; i++) onset_emb[i] = weights['E_onset'].data[onset_idx * embed_dim + i];
+
+  // Nucleus (conditioned on onset)
+  let nuc_logits = headLogits('W_nucleus', 'b_nucleus', h2);
+  if (weights['W_disc_nucleus']) matvecAdd(nuc_logits, weights['W_disc_nucleus'].data, vocabData.nuclei.length, disc_dim, disc_state);
+  if (weights['W_word_nucleus']) matvecAdd(nuc_logits, weights['W_word_nucleus'].data, vocabData.nuclei.length, word_dim, word_state);
+  if (weights['W_role_nucleus']) matvecAdd(nuc_logits, weights['W_role_nucleus'].data, vocabData.nuclei.length, vocabData.roles.length, role_probs);
+  if (weights['W_wb_nucleus']) matvecAdd(nuc_logits, weights['W_wb_nucleus'].data, vocabData.nuclei.length, 2, wb_feat);
+  if (weights['W_nuc_cond']) {
+    // onset_emb @ W_nuc_cond where W_nuc_cond is (embed_dim, n_nuclei)
+    const nuc_cond = weights['W_nuc_cond'].data;
+    const nN = vocabData.nuclei.length;
+    for (let ni = 0; ni < nN; ni++) {
+      let sum = 0;
+      for (let e = 0; e < embed_dim; e++) sum += onset_emb[e] * nuc_cond[e * nN + ni];
+      nuc_logits[ni] += sum;
+    }
+  }
+  nuc_logits = applyNucMask(nuc_logits, onset_idx);
+  applyRepPenalty(nuc_logits, 'nucleus');
+  const nuc_probs = softmax(nuc_logits, temperature);
+  const nuc_idx = topKSample(nuc_probs, topK);
+
+  // Nucleus embedding
+  const nuc_emb = new Float64Array(embed_dim);
+  for (let i = 0; i < embed_dim; i++) nuc_emb[i] = weights['E_nucleus'].data[nuc_idx * embed_dim + i];
+
+  // Coda
+  let coda_logits = headLogits('W_coda', 'b_coda', h2);
+  if (weights['W_disc_coda']) matvecAdd(coda_logits, weights['W_disc_coda'].data, vocabData.codas.length, disc_dim, disc_state);
+  if (weights['W_word_coda']) matvecAdd(coda_logits, weights['W_word_coda'].data, vocabData.codas.length, word_dim, word_state);
+  if (weights['W_role_coda']) matvecAdd(coda_logits, weights['W_role_coda'].data, vocabData.codas.length, vocabData.roles.length, role_probs);
+  if (weights['W_wb_coda']) matvecAdd(coda_logits, weights['W_wb_coda'].data, vocabData.codas.length, 2, wb_feat);
+  if (weights['W_coda_cond']) {
+    const coda_cond = weights['W_coda_cond'].data;
+    const nC = vocabData.codas.length;
+    const cond = concat(onset_emb, nuc_emb); // (2*embed_dim)
+    for (let ci = 0; ci < nC; ci++) {
+      let sum = 0;
+      for (let e = 0; e < 2 * embed_dim; e++) sum += cond[e] * coda_cond[e * nC + ci];
+      coda_logits[ci] += sum;
+    }
+  }
+  coda_logits = applyCodaMask(coda_logits, onset_idx, nuc_idx);
+  applyRepPenalty(coda_logits, 'coda');
+  const coda_probs = softmax(coda_logits, temperature);
+  const coda_idx = topKSample(coda_probs, topK);
+
+  const token = {
+    onset: vocabData.onsets[onset_idx],
+    nucleus: vocabData.nuclei[nuc_idx],
+    coda: vocabData.codas[coda_idx],
+    stress: stress_idx,
+    word_boundary: wb_idx === 1,
+  };
+
+  return {
+    token,
+    h1, h2,
+    onset_probs, nuc_probs, coda_probs, stress_probs, wb_probs, role_probs,
+    onset_idx, nuc_idx, coda_idx, stress_idx, wb_idx,
+  };
+}
+
+// ============================================================
+// Three.js scene
+// ============================================================
+let scene, camera, renderer, controls;
+let neuronMeshes = { context: [], h1: [], h2: [], disc: [], word: [], role: [], wb: [], stress: [], onset: [], nucleus: [], coda: [] };
+let connectionLines = [];  // still needed for cleanup
+let connGroups = {};       // group_name -> {lines: [], mat: THREE.Material, idleOpacity, activeOpacity}
+let connGroupDecay = {};   // group_name -> current opacity (for decay)
+let animFrameId = null;
+let frozenGroups = new Set(); // neuron groups whose targets should not decay during propagation
+let sceneReady = false;
+
+// Label 3D positions (updated after buildNeurons)
+const labelPositions3D = {};
+
+// Activation targets for smooth lerp
+const activationTargets = {
+  h1: [], h2: [], disc: [], word: [],
+  role: [], wb: [], stress: [], onset: [], nucleus: [], coda: []
+};
+
+function initThree() {
+  if (!window.THREE || !window.THREE.OrbitControls) {
+    throw new Error('Three.js did not load. Check network access to cdnjs.cloudflare.com.');
+  }
+  const container = document.getElementById('canvas-container');
+  const canvas = document.getElementById('three-canvas');
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0d1f3c);
+  scene.fog = new THREE.FogExp2(0x0d1f3c, 0.018);
+
+  const w = container.clientWidth, h = container.clientHeight;
+  camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 300);
+  camera.position.set(0, 4, 28);
+
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x0d1f3c);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.2;
+  controls.enableDamping = true;
+  controls.target.set(0, 0, 0);
+
+  // Ambient light — brighter
+  scene.add(new THREE.AmbientLight(0xb0c8ff, 1.2));
+
+  // Warm point lights
+  const pl1 = new THREE.PointLight(0xffd080, 2.5, 60);
+  pl1.position.set(-8, 6, 8);
+  scene.add(pl1);
+  const pl2 = new THREE.PointLight(0x80b0ff, 2.0, 60);
+  pl2.position.set(10, -4, -8);
+  scene.add(pl2);
+  const pl3 = new THREE.PointLight(0xff9040, 1.5, 40);
+  pl3.position.set(0, 12, 0);
+  scene.add(pl3);
+
+  // Stars background
+  addStars();
+
+  buildNeurons();
+  buildConnections();
+
+  window.addEventListener('resize', onResize);
+  animate();
+  sceneReady = true;
+}
+
+function addStars() {
+  const geo = new THREE.BufferGeometry();
+  const count = 1800;
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count * 3; i++) {
+    pos[i] = (Math.random() - 0.5) * 250;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({ color: 0x90a8d0, size: 0.20, transparent: true, opacity: 0.75 });
+  scene.add(new THREE.Points(geo, mat));
+}
+
+function makeSphere(radius, color, emissiveColor, emissiveIntensity) {
+  const geo = new THREE.SphereGeometry(radius, 8, 6);
+  const mat = new THREE.MeshPhongMaterial({
+    color,
+    emissive: emissiveColor,
+    emissiveIntensity,
+    shininess: 80,
+    transparent: true,
+    opacity: 0.92,
+  });
+  return new THREE.Mesh(geo, mat);
+}
+
+function buildNeurons() {
+  neuronMeshes = { context: [], h1: [], h2: [], disc: [], word: [], role: [], wb: [], stress: [], onset: [], nucleus: [], coda: [] };
+
+  // ---- Context layer (X = -10) ----
+  // 10 strips, each 5 spheres tall; Z from -4.05 to +4.05 (step 0.9)
+  for (let pos = 0; pos < 10; pos++) {
+    const z = (pos - 4.5) * 0.9;
+    for (let comp = 0; comp < 5; comp++) {
+      const y = (comp - 2) * 0.55;
+      const m = makeSphere(0.13, 0x110500, 0xffa030, 0.06);
+      m.position.set(-10, y, z);
+      scene.add(m);
+      neuronMeshes.context.push(m);
+    }
+  }
+  // Label anchor: above the context strip
+  labelPositions3D['context'] = new THREE.Vector3(-10, 2.0, 0);
+
+  // ---- H1 hidden layer (X = -5) ----
+  // Block 0: neurons 0-98, centered at Z = -3.5
+  // Block 1: neurons 99-197, centered at Z = +3.5
+  // Each block: 9 rows Y, 11 cols Z-local
+  const H1_ROWS = 9, H1_COLS = 11;
+  for (let blk = 0; blk < 2; blk++) {
+    const zCenter = blk === 0 ? -3.5 : 3.5;
+    for (let r = 0; r < H1_ROWS; r++) {
+      for (let c = 0; c < H1_COLS; c++) {
+        const idx = blk * 99 + r * H1_COLS + c;
+        if (idx >= 198) break;
+        const y = (r - (H1_ROWS - 1) / 2) * 0.34;
+        const z = zCenter + (c - (H1_COLS - 1) / 2) * 0.30;
+        const m = makeSphere(0.10, 0x010a0c, 0x30e8ff, 0.06);
+        m.position.set(-5, y, z);
+        scene.add(m);
+        neuronMeshes.h1.push(m);
+      }
+    }
+    labelPositions3D[blk === 0 ? 'h1-0' : 'h1-1'] = new THREE.Vector3(-5, 1.9, zCenter);
+  }
+
+  // ---- H2 hidden layer (X = +5) ----
+  for (let blk = 0; blk < 2; blk++) {
+    const zCenter = blk === 0 ? -3.5 : 3.5;
+    for (let r = 0; r < H1_ROWS; r++) {
+      for (let c = 0; c < H1_COLS; c++) {
+        const idx = blk * 99 + r * H1_COLS + c;
+        if (idx >= 198) break;
+        const y = (r - (H1_ROWS - 1) / 2) * 0.34;
+        const z = zCenter + (c - (H1_COLS - 1) / 2) * 0.30;
+        const m = makeSphere(0.10, 0x010410, 0x40aaff, 0.06);
+        m.position.set(5, y, z);
+        scene.add(m);
+        neuronMeshes.h2.push(m);
+      }
+    }
+    labelPositions3D[blk === 0 ? 'h2-0' : 'h2-1'] = new THREE.Vector3(5, 1.9, zCenter);
+  }
+
+  // ---- Recurrent state (Y = +8, X = 0) ----
+  // Discourse state: 16 neurons, 4x4 grid, Z = -2
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      const m = makeSphere(0.14, 0x0a0700, 0xffe060, 0.06);
+      m.position.set((c - 1.5) * 0.40, 8 + (r - 1.5) * 0.40, -2);
+      scene.add(m);
+      neuronMeshes.disc.push(m);
+    }
+  }
+  labelPositions3D['disc'] = new THREE.Vector3(0, 9.4, -2);
+
+  // Word state: 8 neurons, 2x4 grid, Z = +2
+  for (let r = 0; r < 2; r++) {
+    for (let c = 0; c < 4; c++) {
+      const m = makeSphere(0.14, 0x0a0400, 0xff9040, 0.06);
+      m.position.set((c - 1.5) * 0.40, 8 + (r - 0.5) * 0.40, 2);
+      scene.add(m);
+      neuronMeshes.word.push(m);
+    }
+  }
+  labelPositions3D['word'] = new THREE.Vector3(0, 9.4, 2);
+
+  // ---- Output heads cascade (X = +10) ----
+  const HEAD_DEFS = [
+    { name: 'role',    color: 0x0a0020, emissive: 0xc080ff, count: 4,  y:  7.5 },
+    { name: 'wb',      color: 0x200010, emissive: 0xff70c0, count: 2,  y:  4.5 },
+    { name: 'stress',  color: 0x200800, emissive: 0xff8060, count: 3,  y:  1.5 },
+    { name: 'nucleus', color: 0x021008, emissive: 0x50ff90, count: 16, y: -1.5 },
+    { name: 'onset',   color: 0x021020, emissive: 0x50c8ff, count: 30, y: -4.5 },
+    { name: 'coda',    color: 0x081002, emissive: 0xa0ff50, count: 25, y: -7.5 },
+  ];
+
+  for (const hd of HEAD_DEFS) {
+    const meshes = [];
+    for (let i = 0; i < hd.count; i++) {
+      const z = (i - (hd.count - 1) / 2) * 0.28;
+      const m = makeSphere(0.10, hd.color, hd.emissive, 0.06);
+      m.position.set(10, hd.y, z);
+      scene.add(m);
+      meshes.push(m);
+    }
+    neuronMeshes[hd.name] = meshes;
+    labelPositions3D[hd.name] = new THREE.Vector3(11.6, hd.y, 0);
+  }
+  labelPositions3D['heads'] = new THREE.Vector3(10, 9.8, 0);
+
+  // Init activation targets arrays
+  for (const key of Object.keys(activationTargets)) {
+    activationTargets[key] = new Array(neuronMeshes[key] ? neuronMeshes[key].length : 0).fill(0.06);
+  }
+}
+
+// Helper: sample N random pairs between two mesh arrays and return array of {from, to} positions
+function samplePairs(fromMeshes, toMeshes, count) {
+  const pairs = [];
+  const n = Math.min(count, fromMeshes.length * toMeshes.length);
+  for (let i = 0; i < n; i++) {
+    pairs.push({
+      from: fromMeshes[Math.floor(Math.random() * fromMeshes.length)].position.clone(),
+      to:   toMeshes[Math.floor(Math.random() * toMeshes.length)].position.clone(),
+    });
+  }
+  return pairs;
+}
+
+function addLines(pairs, color, opacity) {
+  const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity, depthWrite: false });
+  for (const { from, to } of pairs) {
+    const geo = new THREE.BufferGeometry().setFromPoints([from, to]);
+    const line = new THREE.Line(geo, mat.clone());
+    scene.add(line);
+    connectionLines.push(line);
+  }
+}
+
+function addCurvedLines(pairs, color, opacity, controlOffsetY) {
+  const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity, depthWrite: false });
+  for (const { from, to } of pairs) {
+    const mid = from.clone().lerp(to, 0.5);
+    mid.y += controlOffsetY;
+    const curve = new THREE.QuadraticBezierCurve3(from, mid, to);
+    const pts = curve.getPoints(12);
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    const line = new THREE.Line(geo, mat.clone());
+    scene.add(line);
+    connectionLines.push(line);
+  }
+}
+
+function addGroupedLines(groupName, pairs, color, idleOpacity, activeOpacity) {
+  if (!connGroups[groupName]) connGroups[groupName] = { lines: [], color, idleOpacity, activeOpacity };
+  const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: idleOpacity, depthWrite: false });
+  connGroups[groupName].mat = mat; // shared material per group
+  for (const { from, to } of pairs) {
+    const geo = new THREE.BufferGeometry().setFromPoints([from, to]);
+    const line = new THREE.Line(geo, mat);  // shared material — no clone!
+    scene.add(line);
+    connGroups[groupName].lines.push(line);
+    connectionLines.push(line);
+  }
+}
+
+function addGroupedCurvedLines(groupName, pairs, color, idleOpacity, activeOpacity, controlOffsetY) {
+  if (!connGroups[groupName]) connGroups[groupName] = { lines: [], color, idleOpacity, activeOpacity };
+  const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: idleOpacity, depthWrite: false });
+  connGroups[groupName].mat = mat;
+  for (const { from, to } of pairs) {
+    const mid = from.clone().lerp(to, 0.5);
+    mid.y += controlOffsetY;
+    const curve = new THREE.QuadraticBezierCurve3(from, mid, to);
+    const pts = curve.getPoints(12);
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    const line = new THREE.Line(geo, mat);
+    scene.add(line);
+    connGroups[groupName].lines.push(line);
+    connectionLines.push(line);
+  }
+}
+
+function flashGroup(groupName) {
+  const grp = connGroups[groupName];
+  if (!grp || !grp.mat) return;
+  grp.mat.opacity = grp.activeOpacity;
+  connGroupDecay[groupName] = grp.activeOpacity;
+}
+
+function buildConnections() {
+  for (const line of connectionLines) scene.remove(line);
+  connectionLines = [];
+  connGroups = {};
+  connGroupDecay = {};
+
+  const ctxMeshes = neuronMeshes.context;
+  const h1b0 = neuronMeshes.h1.slice(0, 99);
+  const h1b1 = neuronMeshes.h1.slice(99);
+  const h2b0 = neuronMeshes.h2.slice(0, 99);
+  const h2b1 = neuronMeshes.h2.slice(99);
+
+  // Context → H1
+  addGroupedLines('ctx_h1', samplePairs(ctxMeshes, h1b0, 12), 0xc87020, 0.04, 0.75);
+  addGroupedLines('ctx_h1', samplePairs(ctxMeshes, h1b1, 12), 0xc87020, 0.04, 0.75);
+
+  // H1 → H2 (diagonal chunks)
+  addGroupedLines('h1_h2_diag', samplePairs(h1b0, h2b0, 30), 0x20c8c8, 0.04, 0.70);
+  addGroupedLines('h1_h2_diag', samplePairs(h1b1, h2b1, 30), 0x20c8c8, 0.04, 0.70);
+  // H1 → H2 (cross-chunks)
+  addGroupedLines('h1_h2_cross', samplePairs(h1b0, h2b1, 12), 0x8060c8, 0.03, 0.65);
+  addGroupedLines('h1_h2_cross', samplePairs(h1b1, h2b0, 12), 0x8060c8, 0.03, 0.65);
+
+  // H2 → output heads (one group per head)
+  for (const hname of ['role', 'wb', 'stress', 'nucleus', 'onset', 'coda']) {
+    const meshes = neuronMeshes[hname];
+    if (meshes && meshes.length > 0) {
+      addGroupedLines(`h2_${hname}`, samplePairs(neuronMeshes.h2, meshes, 15), 0x2050a0, 0.03, 0.70);
+    }
+  }
+
+  // Recurrent state connections (curved)
+  addGroupedCurvedLines('h1_state', samplePairs(h1b0.slice(0,8), neuronMeshes.disc, 5), 0xf0a030, 0.06, 0.80, 4);
+  addGroupedCurvedLines('h1_state', samplePairs(h1b0.slice(0,8), neuronMeshes.word, 3), 0xf0a030, 0.06, 0.80, 4);
+  addGroupedCurvedLines('state_h1', samplePairs(neuronMeshes.disc, h1b0.slice(0,8), 4), 0xf0c040, 0.06, 0.75, 3);
+  addGroupedCurvedLines('state_h1', samplePairs(neuronMeshes.word, h1b0.slice(0,8), 3), 0xf0c040, 0.06, 0.75, 3);
+  addGroupedCurvedLines('h2_state', samplePairs(h2b0.slice(0,8), neuronMeshes.disc, 5), 0xff8820, 0.06, 0.80, 5);
+  addGroupedCurvedLines('h2_state', samplePairs(h2b0.slice(0,8), neuronMeshes.word, 3), 0xff8820, 0.06, 0.80, 5);
+  addGroupedCurvedLines('state_h2', samplePairs(neuronMeshes.disc, h2b0.slice(0,8), 4), 0xf0c040, 0.06, 0.75, 3);
+  addGroupedCurvedLines('state_h2', samplePairs(neuronMeshes.word, h2b0.slice(0,8), 3), 0xf0c040, 0.06, 0.75, 3);
+
+  // Wide feedback arc
+  const discCenter = new THREE.Vector3(0, 8, -2);
+  const loopTarget = new THREE.Vector3(-12, 0, 0);
+  const arcCtrl1 = new THREE.Vector3(-4, 14, -2);
+  const arcCtrl2 = new THREE.Vector3(-10, 12, 0);
+  const arcCurve = new THREE.CatmullRomCurve3([discCenter, arcCtrl1, arcCtrl2, loopTarget]);
+  const arcPts = arcCurve.getPoints(30);
+  const arcGeo = new THREE.BufferGeometry().setFromPoints(arcPts);
+  if (!connGroups['feedback_arc']) connGroups['feedback_arc'] = { lines: [], color: 0xf0a030, idleOpacity: 0.08, activeOpacity: 0.85 };
+  const arcMat = new THREE.LineBasicMaterial({ color: 0xf0a030, transparent: true, opacity: 0.08, depthWrite: false });
+  connGroups['feedback_arc'].mat = arcMat;
+  const arcLine = new THREE.Line(arcGeo, arcMat);
+  scene.add(arcLine);
+  connGroups['feedback_arc'].lines.push(arcLine);
+  connectionLines.push(arcLine);
+
+  // Output head cascade arrows (also grouped for highlighting)
+  const headPos = {};
+  for (const hname of ['role', 'wb', 'stress', 'nucleus', 'onset', 'coda']) {
+    if (neuronMeshes[hname] && neuronMeshes[hname].length > 0) {
+      const c = new THREE.Vector3();
+      for (const m of neuronMeshes[hname]) c.add(m.position);
+      c.divideScalar(neuronMeshes[hname].length);
+      headPos[hname] = c;
+    }
+  }
+
+  function addCascadeArrow(groupName, from, to, color, idleOpacity, activeOpacity) {
+    if (!from || !to) return;
+    if (!connGroups[groupName]) connGroups[groupName] = { lines: [], color, idleOpacity, activeOpacity };
+    const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: idleOpacity, depthWrite: false });
+    connGroups[groupName].mat = mat;
+    const geo = new THREE.BufferGeometry().setFromPoints([from.clone(), to.clone()]);
+    const line = new THREE.Line(geo, mat);
+    scene.add(line);
+    connGroups[groupName].lines.push(line);
+    connectionLines.push(line);
+    // arrowhead sphere
+    const tip = makeSphere(0.06, color, color, 0.5);
+    tip.position.copy(to).lerp(from, 0.12);
+    scene.add(tip);
+    connectionLines.push(tip);
+  }
+
+  for (const hname of ['wb', 'stress', 'nucleus', 'onset', 'coda']) {
+    addCascadeArrow(`cascade_role_${hname}`, headPos['role'], headPos[hname], 0xa060f0, 0.08, 0.85);
+  }
+  addCascadeArrow('cascade_wb_onset',   headPos['wb'],     headPos['onset'],   0xe060a0, 0.08, 0.85);
+  addCascadeArrow('cascade_wb_nucleus', headPos['wb'],     headPos['nucleus'], 0xe060a0, 0.08, 0.85);
+  addCascadeArrow('cascade_wb_coda',    headPos['wb'],     headPos['coda'],    0xe060a0, 0.08, 0.85);
+  addCascadeArrow('cascade_stress_onset', headPos['stress'], headPos['onset'], 0xf07050, 0.08, 0.85);
+  addCascadeArrow('within_onset_nucleus', headPos['onset'],  headPos['nucleus'], 0xff9030, 0.10, 0.95);
+  addCascadeArrow('within_onset_coda',    headPos['onset'],  headPos['coda'],    0xff9030, 0.10, 0.95);
+  addCascadeArrow('within_nucleus_coda',  headPos['nucleus'],headPos['coda'],    0xff9030, 0.10, 0.95);
+}
+
+function onResize() {
+  const container = document.getElementById('canvas-container');
+  const w = container.clientWidth, h = container.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+}
+
+// ---- HTML label overlay helpers ----
+function projectToScreen(pos3d) {
+  const container = document.getElementById('canvas-container');
+  const w = container.clientWidth, h = container.clientHeight;
+  const v = pos3d.clone().project(camera);
+  return {
+    x: (v.x * 0.5 + 0.5) * w,
+    y: (-v.y * 0.5 + 0.5) * h,
+    visible: v.z < 1.0,
+  };
+}
+
+function updateLabels() {
+  const labelMap = {
+    'lbl-context': labelPositions3D['context'],
+    'lbl-h1-0':   labelPositions3D['h1-0'],
+    'lbl-h1-1':   labelPositions3D['h1-1'],
+    'lbl-h2-0':   labelPositions3D['h2-0'],
+    'lbl-h2-1':   labelPositions3D['h2-1'],
+    'lbl-disc':   labelPositions3D['disc'],
+    'lbl-word':   labelPositions3D['word'],
+    'lbl-heads':  labelPositions3D['heads'],
+    'lbl-role':   labelPositions3D['role'],
+    'lbl-wb':     labelPositions3D['wb'],
+    'lbl-stress': labelPositions3D['stress'],
+    'lbl-nucleus':labelPositions3D['nucleus'],
+    'lbl-onset':  labelPositions3D['onset'],
+    'lbl-coda':   labelPositions3D['coda'],
+  };
+  for (const [id, pos] of Object.entries(labelMap)) {
+    if (!pos) continue;
+    const el = document.getElementById(id);
+    if (!el) continue;
+    const sc = projectToScreen(pos);
+    if (sc.visible) {
+      el.style.display = 'block';
+      el.style.left = sc.x + 'px';
+      el.style.top  = sc.y + 'px';
+    } else {
+      el.style.display = 'none';
+    }
+  }
+}
+
+function animate() {
+  animFrameId = requestAnimationFrame(animate);
+  controls.update();
+
+  const t = Date.now() * 0.001;
+
+  // Lerp all neuron emissiveIntensity toward targets (fast rise, slow decay)
+  const IDLE_INTENSITY = 0.06;
+  for (const key of ['h1', 'h2', 'disc', 'word', 'role', 'wb', 'stress', 'onset', 'nucleus', 'coda']) {
+    const meshes = neuronMeshes[key];
+    const targets = activationTargets[key];
+    if (!meshes) continue;
+    const frozen = frozenGroups.has(key);
+    for (let i = 0; i < meshes.length; i++) {
+      const target = (targets && i < targets.length) ? targets[i] : IDLE_INTENSITY;
+      const cur = meshes[i].material.emissiveIntensity;
+      const spd = cur < target ? 0.40 : 0.04;
+      meshes[i].material.emissiveIntensity = cur + (target - cur) * spd;
+      // Only decay target when not frozen
+      if (!frozen && targets && i < targets.length && targets[i] > IDLE_INTENSITY) {
+        targets[i] = targets[i] + (IDLE_INTENSITY - targets[i]) * 0.025;
+      }
+    }
+  }
+
+  // Decay connection group opacities back toward idle
+  for (const [groupName, grp] of Object.entries(connGroups)) {
+    if (!grp.mat) continue;
+    const cur = grp.mat.opacity;
+    if (cur > grp.idleOpacity + 0.005) {
+      grp.mat.opacity = cur + (grp.idleOpacity - cur) * 0.07;
+    }
+  }
+
+  // Context neuron pulse — hold when frozen, decay when not
+  for (const mesh of neuronMeshes.context) {
+    const cur = mesh.material.emissiveIntensity;
+    if (frozenGroups.has('context')) {
+      // Hold near the peak — gentle stabilising lerp
+      mesh.material.emissiveIntensity = cur + (2.5 - cur) * 0.06;
+    } else if (cur > 0.3) {
+      mesh.material.emissiveIntensity = cur * 0.88;
+    } else {
+      mesh.material.emissiveIntensity = 0.08 + 0.06 * Math.sin(t * 0.7 + mesh.position.z * 0.8);
+    }
+  }
+
+  // Disc/word state — hold when frozen, idle pulse otherwise
+  for (const mesh of neuronMeshes.disc) {
+    const cur = mesh.material.emissiveIntensity;
+    if (frozenGroups.has('disc')) {
+      mesh.material.emissiveIntensity = cur + (2.0 - cur) * 0.06;
+    } else if (cur < 0.15) {
+      mesh.material.emissiveIntensity = 0.10 + 0.08 * Math.sin(t * 0.5 + mesh.position.x);
+    }
+  }
+  for (const mesh of neuronMeshes.word) {
+    const cur = mesh.material.emissiveIntensity;
+    if (frozenGroups.has('word')) {
+      mesh.material.emissiveIntensity = cur + (2.0 - cur) * 0.06;
+    } else if (cur < 0.15) {
+      mesh.material.emissiveIntensity = 0.10 + 0.08 * Math.sin(t * 0.6 + mesh.position.z);
+    }
+  }
+
+  updateLabels();
+  renderer.render(scene, camera);
+}
+
+// ============================================================
+// Activation visualization
+// ============================================================
+function flashActivations(h1, h2, probs) {
+  // H1: map activation magnitude to emissive target, with block structure
+  const h1Max = Math.max(...h1) || 1;
+  if (activationTargets.h1.length !== neuronMeshes.h1.length) {
+    activationTargets.h1 = new Array(neuronMeshes.h1.length).fill(0.06);
+  }
+  for (let i = 0; i < neuronMeshes.h1.length; i++) {
+    const v = (i < h1.length ? h1[i] : 0) / h1Max;
+    activationTargets.h1[i] = 0.06 + v * 3.5;
+    // Shift emissive color from teal toward white
+    neuronMeshes.h1[i].material.emissive.setRGB(
+      0.12 + v * 0.88,   // R: dark → 1.0
+      0.72 + v * 0.28,   // G: stays high
+      0.80 + v * 0.20    // B: already high
+    );
+  }
+
+  // H2: same with cyan-blue color
+  const h2Max = Math.max(...h2) || 1;
+  if (activationTargets.h2.length !== neuronMeshes.h2.length) {
+    activationTargets.h2 = new Array(neuronMeshes.h2.length).fill(0.06);
+  }
+  for (let i = 0; i < neuronMeshes.h2.length; i++) {
+    const v = (i < h2.length ? h2[i] : 0) / h2Max;
+    activationTargets.h2[i] = 0.06 + v * 3.5;
+    neuronMeshes.h2[i].material.emissive.setRGB(
+      0.16 + v * 0.84,
+      0.53 + v * 0.47,
+      1.0
+    );
+  }
+
+  // Output heads: emissiveIntensity proportional to probability
+  for (const head of ['role', 'wb', 'stress', 'onset', 'nucleus', 'coda']) {
+    const p = probs[head];
+    const meshes = neuronMeshes[head];
+    if (!p || !meshes) continue;
+    if (activationTargets[head].length !== meshes.length) {
+      activationTargets[head] = new Array(meshes.length).fill(0.06);
+    }
+    let maxP = 0;
+    for (let i = 0; i < Math.min(p.length, meshes.length); i++) if (p[i] > maxP) maxP = p[i];
+    for (let i = 0; i < meshes.length; i++) {
+      const v = (i < p.length && maxP > 0) ? p[i] / maxP : 0;
+      activationTargets[head][i] = 0.06 + v * 3.5;
+    }
+  }
+}
+
+function triggerPropagation(h1, h2, probs, speed) {
+  const step = parseInt(document.getElementById('prop-slider').value) || 80;
+
+  // Clear any leftover frozen state from a previous (interrupted) propagation
+  frozenGroups.clear();
+
+  return new Promise(resolve => {
+
+  // Step 0: Context lights up — freeze it so it holds until H1 fires
+  setTimeout(() => {
+    frozenGroups.add('context');
+    for (const m of neuronMeshes.context) m.material.emissiveIntensity = 4.0;
+    flashGroup('feedback_arc');
+  }, 0);
+
+  // Step 1: H1 activates — unfreeze context, freeze H1
+  setTimeout(() => {
+    frozenGroups.delete('context');
+    frozenGroups.add('h1');
+    const h1Max = Math.max(...h1) || 1;
+    for (let i = 0; i < neuronMeshes.h1.length; i++) {
+      const v = (i < h1.length ? h1[i] : 0) / h1Max;
+      if (activationTargets.h1.length > i) activationTargets.h1[i] = 0.06 + v * 3.5;
+      neuronMeshes.h1[i].material.emissive.setRGB(0.12 + v * 0.88, 0.72 + v * 0.28, 0.80 + v * 0.20);
+    }
+    flashGroup('ctx_h1');
+    flashGroup('state_h1');
+  }, step);
+
+  // Step 2: Recurrent state — unfreeze H1, freeze disc+word
+  setTimeout(() => {
+    frozenGroups.delete('h1');
+    frozenGroups.add('disc');
+    frozenGroups.add('word');
+    for (const m of neuronMeshes.disc) m.material.emissiveIntensity = 2.0;
+    for (const m of neuronMeshes.word) m.material.emissiveIntensity = 2.0;
+    flashGroup('h1_state');
+    flashGroup('feedback_arc');
+  }, step * 2);
+
+  // Step 3: H2 activates — unfreeze disc+word, freeze H2
+  setTimeout(() => {
+    frozenGroups.delete('disc');
+    frozenGroups.delete('word');
+    frozenGroups.add('h2');
+    const h2Max = Math.max(...h2) || 1;
+    for (let i = 0; i < neuronMeshes.h2.length; i++) {
+      const v = (i < h2.length ? h2[i] : 0) / h2Max;
+      if (activationTargets.h2.length > i) activationTargets.h2[i] = 0.06 + v * 3.5;
+      neuronMeshes.h2[i].material.emissive.setRGB(0.16 + v * 0.84, 0.53 + v * 0.47, 1.0);
+    }
+    flashGroup('h1_h2_diag');
+    flashGroup('h1_h2_cross');
+    flashGroup('state_h2');
+    flashGroup('h2_state');
+  }, step * 3);
+
+  // Steps 4-9: output heads cascade
+  // h2 stays frozen through the entire cascade so the user can still see
+  // which hidden activations are feeding the factored output heads.
+  // role stays frozen through entire cascade (conditions every head)
+  // wb stays frozen until coda (conditions onset, nucleus, coda)
+  // stress stays frozen until onset fires
+  // nucleus stays frozen until coda fires
+  // onset stays frozen until coda fires
+  const headOrder = [
+    { name: 'role',    prob: probs.role,    cascades: [],
+      onFire: () => { frozenGroups.add('h2'); frozenGroups.add('role'); } },
+    { name: 'wb',      prob: probs.wb,      cascades: ['cascade_role_wb'],
+      onFire: () => { frozenGroups.add('h2'); frozenGroups.add('wb'); } },
+    { name: 'stress',  prob: probs.stress,  cascades: ['cascade_role_stress'],
+      onFire: () => { frozenGroups.add('h2'); frozenGroups.add('stress'); } },
+    { name: 'nucleus', prob: probs.nucleus, cascades: ['cascade_role_nucleus', 'cascade_wb_nucleus'],
+      onFire: () => { frozenGroups.add('h2'); frozenGroups.add('nucleus'); } },
+    { name: 'onset',   prob: probs.onset,   cascades: ['cascade_role_onset', 'cascade_wb_onset', 'cascade_stress_onset', 'within_onset_nucleus'],
+      onFire: () => { frozenGroups.add('h2'); frozenGroups.delete('stress'); frozenGroups.add('onset'); } },
+    { name: 'coda',    prob: probs.coda,    cascades: ['cascade_role_coda', 'cascade_wb_coda', 'within_onset_coda', 'within_nucleus_coda'],
+      onFire: () => { frozenGroups.add('h2'); frozenGroups.delete('wb'); frozenGroups.delete('nucleus'); frozenGroups.delete('onset'); frozenGroups.add('coda'); } },
+  ];
+
+  headOrder.forEach((hd, i) => {
+    const isLast = i === headOrder.length - 1;
+    setTimeout(() => {
+      hd.onFire();
+      const p = hd.prob;
+      const meshes = neuronMeshes[hd.name];
+      if (p && meshes && activationTargets[hd.name]) {
+        let maxP = 0;
+        for (let j = 0; j < Math.min(p.length, meshes.length); j++) if (p[j] > maxP) maxP = p[j];
+        for (let j = 0; j < meshes.length; j++) {
+          const v = (j < p.length && maxP > 0) ? p[j] / maxP : 0;
+          if (j < activationTargets[hd.name].length) activationTargets[hd.name][j] = 0.06 + v * 3.5;
+        }
+      }
+      flashGroup(`h2_${hd.name}`);
+      for (const c of hd.cascades) flashGroup(c);
+      if (isLast) {
+        // Hold briefly so coda is visible, then unfreeze everything and resolve
+        setTimeout(() => {
+          frozenGroups.clear();
+          resolve();
+        }, Math.max(150, step * 0.5));
+      }
+    }, step * (4 + i));
+  });
+  }); // end Promise
+}
+
+function rebuildOutputHeads(onsets, nuclei, codas, roles) {
+  // Remove old output head meshes and cascade arrow lines
+  for (const head of ['role', 'wb', 'stress', 'onset', 'nucleus', 'coda']) {
+    for (const m of neuronMeshes[head]) scene.remove(m);
+    neuronMeshes[head] = [];
+  }
+
+  const HEAD_DEFS = [
+    { name: 'role',    color: 0x0a0020, emissive: 0xc080ff, count: roles.length,   y:  7.5 },
+    { name: 'wb',      color: 0x200010, emissive: 0xff70c0, count: 2,              y:  4.5 },
+    { name: 'stress',  color: 0x200800, emissive: 0xff8060, count: 3,              y:  1.5 },
+    { name: 'nucleus', color: 0x021008, emissive: 0x50ff90, count: nuclei.length,  y: -1.5 },
+    { name: 'onset',   color: 0x021020, emissive: 0x50c8ff, count: onsets.length,  y: -4.5 },
+    { name: 'coda',    color: 0x081002, emissive: 0xa0ff50, count: codas.length,   y: -7.5 },
+  ];
+
+  for (const hd of HEAD_DEFS) {
+    const meshes = [];
+    const clampCount = Math.min(hd.count, 80); // cap display for very large vocabs
+    for (let i = 0; i < clampCount; i++) {
+      const z = (i - (clampCount - 1) / 2) * 0.26;
+      const m = makeSphere(0.10, hd.color, hd.emissive, 0.06);
+      m.position.set(10, hd.y, z);
+      scene.add(m);
+      meshes.push(m);
+    }
+    neuronMeshes[hd.name] = meshes;
+    labelPositions3D[hd.name] = new THREE.Vector3(11.6, hd.y, 0);
+
+    // Reset activation targets
+    activationTargets[hd.name] = new Array(meshes.length).fill(0.06);
+  }
+
+  buildConnections();
+}
+
+// ============================================================
+// UI controls
+// ============================================================
+const tempSlider = document.getElementById('temp-slider');
+const tempVal = document.getElementById('temp-val');
+const speedSlider = document.getElementById('speed-slider');
+const speedVal = document.getElementById('speed-val');
+const outputEl = document.getElementById('output');
+const btnRun = document.getElementById('btn-run');
+const btnStep = document.getElementById('btn-step');
+const btnStop = document.getElementById('btn-stop');
+const tokenOverlay = document.getElementById('token-overlay');
+const wordText = document.getElementById('word-text');
+const sylText = document.getElementById('syl-text');
+const sylInfo = document.getElementById('syl-info');
+
+tempSlider.addEventListener('input', () => { tempVal.textContent = parseFloat(tempSlider.value).toFixed(2); });
+speedSlider.addEventListener('input', () => { speedVal.textContent = speedSlider.value + 'ms'; });
+const propSlider = document.getElementById('prop-slider');
+const propVal = document.getElementById('prop-val');
+propSlider.addEventListener('input', () => { propVal.textContent = propSlider.value + 'ms'; });
+
+function setStatus(msg, cls = '') {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = cls;
+}
+
+function setReady(ready) {
+  btnRun.disabled = !ready;
+  btnStep.disabled = !ready;
+}
+
+setStatus('Loading model files...', 'gen');
+
+// ============================================================
+// Auto-loader: fetch data/ files on GitHub Pages boot
+// ============================================================
+function makeFakeFile(name, buffer) {
+  return {
+    name,
+    size: buffer.byteLength,
+    arrayBuffer: () => Promise.resolve(buffer),
+    text: () => Promise.resolve(new TextDecoder().decode(buffer)),
+  };
+}
+
+async function autoLoadDefaults() {
+  const files = [
+    { url: 'data/tilm2_weights.npz',      load: loadWeightsFile },
+    { url: 'data/training_data.json',     load: loadVocabFile },
+    { url: 'data/project_lexicon.json',   load: loadLexiconFile },
+  ];
+
+  let anyLoaded = false;
+  for (const { url, load } of files) {
+    try {
+      setStatus(`Fetching ${url}...`, 'gen');
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const buf = await resp.arrayBuffer();
+      await load(makeFakeFile(url.split('/').pop(), buf));
+      anyLoaded = true;
+    } catch (err) {
+      console.warn(`[TILM2] Auto-load skipped ${url}:`, err.message);
+    }
+  }
+
+  if (!anyLoaded) {
+    setStatus('Auto-load unavailable (local file:// context). Use the load buttons or drop files below.', '');
+  }
+}
+
+autoLoadDefaults();
+
+async function loadWeightsFile(file) {
+  console.log('[TILM2] Loading weights:', file.name, file.size, 'bytes');
+  setStatus('Parsing .npz...', 'gen');
+  try {
+    const buf = await file.arrayBuffer();
+    weights = await parseNpz(buf);
+    document.getElementById('npz-btn').textContent = '✓ ' + file.name;
+    document.getElementById('npz-btn').className = 'file-btn loaded';
+    setStatus('Weights loaded (' + Object.keys(weights).length + ' arrays)', 'ok');
+    tryInitModel();
+  } catch(err) {
+    setStatus('Error parsing .npz: ' + err.message, 'err');
+    console.error(err);
+  }
+}
+
+async function loadVocabFile(file) {
+  console.log('[TILM2] Loading vocab/data JSON:', file.name, file.size, 'bytes');
+  setStatus('Parsing JSON...', 'gen');
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    trainingWindows = data.windows || null;
+    const vocab = data.vocab || (
+      Array.isArray(data.onsets) && Array.isArray(data.nuclei) && Array.isArray(data.codas)
+        ? data
+        : {}
+    );
+    vocabData = {
+      onsets: vocab.onsets || [],
+      nuclei: vocab.nuclei || [],
+      codas: vocab.codas || [],
+      roles: vocab.roles || data.role_vocab || ['other'],
+      onset_to_idx: {},
+      nucleus_to_idx: {},
+      coda_to_idx: {},
+      role_to_idx: {},
+    };
+    vocabData.onsets.forEach((v, i) => vocabData.onset_to_idx[v] = i);
+    vocabData.nuclei.forEach((v, i) => vocabData.nucleus_to_idx[v] = i);
+    vocabData.codas.forEach((v, i) => vocabData.coda_to_idx[v] = i);
+    vocabData.roles.forEach((v, i) => vocabData.role_to_idx[v] = i);
+
+    // Build phonotactic mask from windows
+    if (trainingWindows && trainingWindows.length > 0) {
+      buildPhonoMask(trainingWindows);
+    }
+
+    document.getElementById('json-btn').textContent = '✓ ' + file.name;
+    document.getElementById('json-btn').className = 'file-btn loaded';
+    setStatus(`Vocab loaded (${vocabData.onsets.length} onsets, ${vocabData.nuclei.length} nuclei, ${vocabData.codas.length} codas)`, 'ok');
+    tryInitModel();
+  } catch(err) {
+    setStatus('Error parsing JSON: ' + err.message, 'err');
+    console.error(err);
+  }
+}
+
+async function loadLexiconFile(file) {
+  console.log('[TILM2] Loading lexicon:', file.name, file.size, 'bytes');
+  setStatus('Parsing lexicon...', 'gen');
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (data.decode_lexicon) {
+      decodeLexicon = data.decode_lexicon;
+      decodeLexiconNoStress = data.decode_lexicon_nostress || null;
+      lexiconWords = data.words || null;
+      document.getElementById('lex-btn').textContent = '✓ ' + file.name;
+      document.getElementById('lex-btn').className = 'file-btn loaded';
+      const hint = document.getElementById('lex-hint');
+      if (hint) hint.style.display = 'none';
+      setStatus(`Lexicon loaded (${Object.keys(decodeLexicon).length} words)`, 'ok');
+    } else {
+      setStatus('File has no decode_lexicon key', 'err');
+    }
+  } catch(err) {
+    setStatus('Error loading lexicon: ' + err.message, 'err');
+  }
+}
+
+async function loadJsonByShape(file) {
+  const text = await file.text();
+  const data = JSON.parse(text);
+  if (data.decode_lexicon) {
+    await loadLexiconFile(file);
+  } else if (data.vocab || (Array.isArray(data.onsets) && Array.isArray(data.nuclei) && Array.isArray(data.codas))) {
+    await loadVocabFile(file);
+  } else {
+    setStatus('Unknown JSON shape: ' + file.name, 'err');
+  }
+}
+
+document.getElementById('npz-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  await loadWeightsFile(file);
+});
+
+document.getElementById('json-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  await loadVocabFile(file);
+});
+
+document.getElementById('lex-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  await loadLexiconFile(file);
+});
+
+const dropZone = document.getElementById('drop-zone');
+dropZone.addEventListener('dragover', (event) => {
+  event.preventDefault();
+  dropZone.classList.add('dragover');
+});
+dropZone.addEventListener('dragleave', () => {
+  dropZone.classList.remove('dragover');
+});
+dropZone.addEventListener('drop', async (event) => {
+  event.preventDefault();
+  dropZone.classList.remove('dragover');
+  const files = Array.from(event.dataTransfer.files || []);
+  if (!files.length) return;
+  setStatus(`Dropped ${files.length} file(s)...`, 'gen');
+  for (const file of files) {
+    if (file.name.toLowerCase().endsWith('.npz')) {
+      await loadWeightsFile(file);
+    } else if (file.name.toLowerCase().endsWith('.json')) {
+      await loadJsonByShape(file);
+    } else {
+      setStatus('Unsupported dropped file: ' + file.name, 'err');
+    }
+  }
+});
+
+function tryInitModel() {
+  if (!weights || !vocabData) return;
+  if (!initModel()) return;
+
+  // Rebuild output heads with correct neuron counts when the 3D scene is available.
+  if (sceneReady) {
+    rebuildOutputHeads(vocabData.onsets, vocabData.nuclei, vocabData.codas, vocabData.roles);
+  }
+
+  setStatus(`Model ready! context_len=${hparams.context_len}, hidden=${hparams.hidden_dim}, embed=${hparams.embed_dim}`, 'ok');
+  setReady(true);
+}
+
+// ============================================================
+// Seed tokenization
+// ============================================================
+function tokenizeFromData(windows) {
+  // Build word -> token sequence map from windows
+  const wordMap = {};
+  // Traverse all windows and build sequences
+  for (const win of windows) {
+    if (!win.context || win.context.length === 0) continue;
+    let seq = [];
+    for (const tok of win.context) {
+      seq.push(tok);
+      if (tok.word_boundary) {
+        // word ends here (word_boundary on first syllable of NEXT word, actually check onset)
+      }
+    }
+  }
+  return wordMap;
+}
+
+function parseSeedText(text, windows) {
+  if (!text.trim()) return [];
+  const seedWords = (text.toLowerCase().match(/[a-z']+/g) || []).map(normalizeSeedWord).filter(Boolean);
+  if (seedWords.length === 0) return [];
+
+  const seedTokens = [];
+  const missing = [];
+  for (const word of seedWords) {
+    const wordTokens = lexiconWordToTokens(word);
+    if (!wordTokens) {
+      missing.push(word);
+      continue;
+    }
+    for (const tok of wordTokens) seedTokens.push(tok);
+  }
+
+  if (missing.length > 0) {
+    console.warn('[TILM2] Seed words missing from loaded lexicon:', missing.join(', '));
+  }
+  return seedTokens;
+}
+
+// ============================================================
+// Generation loop
+// ============================================================
+let generatedTokens = [];
+let generationWordBuf = [];
+
+function tokToStr(tok) {
+  const stress = ['', 'ˈ', 'ˌ'][tok.stress] || '';
+  return stress + tok.onset + tok.nucleus + tok.coda;
+}
+
+// Collect syllables belonging to the current (last) word in the token list
+function currentWordTokens(tokens) {
+  const words = splitWords(tokens);
+  return words.length > 0 ? words[words.length - 1] : [];
+}
+
+function showToken(tok, allTokens) {
+  tokenOverlay.style.display = 'block';
+  // Raw syllable line
+  sylText.textContent = tokToStr(tok);
+  sylInfo.textContent = `wb:${tok.word_boundary?'▪':'·'} stress:${tok.stress}`;
+  // English word line — decode accumulated syllables of the current word so far
+  if (allTokens && allTokens.length > 0) {
+    const curWord = currentWordTokens(allTokens);
+    wordText.textContent = decodeWord(curWord);
+  } else {
+    wordText.textContent = '';
+  }
+}
+
+function appendOutput(tokens) {
+  outputEl.value = decodeTokensToWords(tokens);
+  outputEl.scrollTop = outputEl.scrollHeight;
+}
+
+async function runGeneration(nSyl, stepMode) {
+  if (generating && !stepMode) return;
+  if (!weights || !vocabData || !hparams) return;
+
+  const temperature = parseFloat(tempSlider.value);
+  const topK = parseInt(document.getElementById('topk-input').value) || 3;
+  const speed = parseInt(speedSlider.value);
+  const seedText = document.getElementById('seed-input').value || '';
+  const shouldInitSeed = !stepMode || (stepMode && context.length === 0 && generatedTokens.length === 0);
+
+  if (!stepMode) {
+    generatedTokens = [];
+    outputEl.value = '';
+    tokenOverlay.style.display = 'none';
+    wordText.textContent = '';
+    sylText.textContent = '';
+  }
+
+  if (shouldInitSeed) {
+    const seedTokens = parseSeedText(seedText, trainingWindows);
+    context = seedTokens.slice(-hparams.context_len);
+    if (seedText.trim() && seedTokens.length === 0) {
+      console.warn('[TILM2] Seed text provided but no seed syllables could be built. Generation will start cold.');
+    }
+  }
+
+  if (!stepMode) {
+    generating = true;
+    stopFlag = false;
+    btnRun.disabled = true;
+    btnStep.disabled = true;
+    btnStop.disabled = false;
+  }
+
+  if (!decodeLexicon) {
+    console.warn('[TILM2] No lexicon loaded — words will show as [rawphonemes]. Load project_lexicon.json for English decoding.');
+    setStatus('Generating... (no lexicon: words show as [phonemes])', 'gen');
+  } else {
+    setStatus(`Generating... T=${temperature.toFixed(2)} top-k=${topK}`, 'gen');
+  }
+
+  console.log(`[TILM2] Run config: temperature=${temperature.toFixed(2)} topK=${topK} stepMode=${stepMode} seedTokens=${context.length}`);
+
+  let debugFirst = true;
+  for (let s = 0; s < nSyl; s++) {
+    if (stopFlag) break;
+
+    let result;
+    try {
+      result = generateOneSyllable(context, temperature, topK, generatedTokens, 0.5, 15);
+    } catch(err) {
+      setStatus('Generation error: ' + err.message, 'err');
+      console.error(err);
+      break;
+    }
+
+    const { token, h1, h2, onset_probs, nuc_probs, coda_probs, stress_probs, wb_probs, role_probs } = result;
+
+    if (debugFirst) {
+      debugFirst = false;
+      console.log('[TILM2 debug] First syllable forward pass:');
+      console.log('  temperature:', temperature.toFixed(2), ' topK:', topK);
+      console.log('  h2[:10]:', Array.from(h2.slice(0,10)).map(v=>v.toFixed(6)).join(', '));
+      console.log('  h2 max:', Math.max(...h2).toFixed(6), ' nonzero:', Array.from(h2).filter(v=>v>0).length);
+      console.log('  role_probs:', Array.from(role_probs).map(v=>v.toFixed(4)).join(', '));
+      console.log('  wb_probs:', Array.from(wb_probs).map(v=>v.toFixed(4)).join(', '));
+      console.log('  stress_probs:', Array.from(stress_probs).map(v=>v.toFixed(4)).join(', '));
+      const top5onset = Array.from(onset_probs).map((p,i)=>[p,vocabData.onsets[i]]).sort((a,b)=>b[0]-a[0]).slice(0,5);
+      console.log('  onset top5:', top5onset.map(([p,o])=>`${o}(${p.toFixed(3)})`).join(', '));
+      console.log('  token:', token.onset + token.nucleus + token.coda, 'wb:', token.word_boundary, 'stress:', token.stress);
+      console.log('  lexicon loaded:', !!decodeLexicon);
+      if (decodeLexicon) {
+        const decoded = decodeTokensToWords([token]);
+        console.log('  decoded:', decoded);
+      }
+    }
+
+    await triggerPropagation(h1, h2, {
+      role: role_probs,
+      wb: wb_probs,
+      stress: stress_probs,
+      onset: onset_probs,
+      nucleus: nuc_probs,
+      coda: coda_probs,
+    }, speed);
+
+    context = [...context, token];
+    if (context.length > (hparams.context_len + 20)) context = context.slice(-hparams.context_len - 5);
+    generatedTokens.push(token);
+
+    showToken(token, generatedTokens);
+    appendOutput(generatedTokens);
+
+    if (speed > 0 && !stepMode) {
+      await new Promise(r => setTimeout(r, speed));
+    }
+
+    if (stepMode) break;
+  }
+
+  if (!stepMode) {
+    generating = false;
+    btnRun.disabled = false;
+    btnStep.disabled = false;
+    btnStop.disabled = true;
+    setStatus(`Done. Generated ${generatedTokens.length} syllables.`, 'ok');
+  }
+}
+
+btnRun.addEventListener('click', () => {
+  generatedTokens = [];
+  outputEl.value = '';
+  const n = parseInt(document.getElementById('nsyl-input').value) || 30;
+  runGeneration(n, false);
+});
+
+btnStep.addEventListener('click', () => {
+  if (!generating) {
+    runGeneration(1, true);
+  }
+});
+
+btnStop.addEventListener('click', () => {
+  stopFlag = true;
+  btnStop.disabled = true;
+  setStatus('Stopping...', '');
+});
+
+// ============================================================
+// Boot
+// ============================================================
+try {
+  initThree();
+} catch (err) {
+  console.error('[TILM2] 3D initialization failed:', err);
+  setStatus('3D failed: ' + err.message + ' File loading still works.', 'err');
+}
+</script>
+</body>
+</html>

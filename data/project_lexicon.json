@@ -1,0 +1,834 @@
+{
+  "vocab_sources": [
+    "corpus/thematic.txt"
+  ],
+  "max_syllables": 4,
+  "words": {
+    "air": [
+      {
+        "onset": "",
+        "nucleus": "EH",
+        "coda": "R",
+        "stress": 1
+      }
+    ],
+    "and": [
+      {
+        "onset": "",
+        "nucleus": "AH",
+        "coda": "ND",
+        "stress": 0
+      }
+    ],
+    "bird": [
+      {
+        "onset": "B",
+        "nucleus": "ER",
+        "coda": "D",
+        "stress": 1
+      }
+    ],
+    "blew": [
+      {
+        "onset": "BL",
+        "nucleus": "UW",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "burned": [
+      {
+        "onset": "B",
+        "nucleus": "ER",
+        "coda": "ND",
+        "stress": 1
+      }
+    ],
+    "by": [
+      {
+        "onset": "B",
+        "nucleus": "AY",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "came": [
+      {
+        "onset": "K",
+        "nucleus": "EY",
+        "coda": "M",
+        "stress": 1
+      }
+    ],
+    "clear": [
+      {
+        "onset": "KL",
+        "nucleus": "IH",
+        "coda": "R",
+        "stress": 1
+      }
+    ],
+    "cold": [
+      {
+        "onset": "K",
+        "nucleus": "OW",
+        "coda": "LD",
+        "stress": 1
+      }
+    ],
+    "crow": [
+      {
+        "onset": "KR",
+        "nucleus": "OW",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "dark": [
+      {
+        "onset": "D",
+        "nucleus": "AA",
+        "coda": "RK",
+        "stress": 1
+      }
+    ],
+    "dawn": [
+      {
+        "onset": "D",
+        "nucleus": "AO",
+        "coda": "N",
+        "stress": 1
+      }
+    ],
+    "day": [
+      {
+        "onset": "D",
+        "nucleus": "EY",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "deep": [
+      {
+        "onset": "D",
+        "nucleus": "IY",
+        "coda": "P",
+        "stress": 1
+      }
+    ],
+    "deer": [
+      {
+        "onset": "D",
+        "nucleus": "IH",
+        "coda": "R",
+        "stress": 1
+      }
+    ],
+    "did": [
+      {
+        "onset": "D",
+        "nucleus": "IH",
+        "coda": "D",
+        "stress": 1
+      }
+    ],
+    "dog": [
+      {
+        "onset": "D",
+        "nucleus": "AO",
+        "coda": "G",
+        "stress": 1
+      }
+    ],
+    "fell": [
+      {
+        "onset": "F",
+        "nucleus": "EH",
+        "coda": "L",
+        "stress": 1
+      }
+    ],
+    "field": [
+      {
+        "onset": "F",
+        "nucleus": "IY",
+        "coda": "LD",
+        "stress": 1
+      }
+    ],
+    "fire": [
+      {
+        "onset": "F",
+        "nucleus": "AY",
+        "coda": "",
+        "stress": 1
+      },
+      {
+        "onset": "",
+        "nucleus": "ER",
+        "coda": "",
+        "stress": 0
+      }
+    ],
+    "grew": [
+      {
+        "onset": "GR",
+        "nucleus": "UW",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "grey": [
+      {
+        "onset": "GR",
+        "nucleus": "EY",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "he": [
+      {
+        "onset": "HH",
+        "nucleus": "IY",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "hill": [
+      {
+        "onset": "HH",
+        "nucleus": "IH",
+        "coda": "L",
+        "stress": 1
+      }
+    ],
+    "in": [
+      {
+        "onset": "",
+        "nucleus": "IH",
+        "coda": "N",
+        "stress": 0
+      }
+    ],
+    "lake": [
+      {
+        "onset": "L",
+        "nucleus": "EY",
+        "coda": "K",
+        "stress": 1
+      }
+    ],
+    "lay": [
+      {
+        "onset": "L",
+        "nucleus": "EY",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "light": [
+      {
+        "onset": "L",
+        "nucleus": "AY",
+        "coda": "T",
+        "stress": 1
+      }
+    ],
+    "low": [
+      {
+        "onset": "L",
+        "nucleus": "OW",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "man": [
+      {
+        "onset": "M",
+        "nucleus": "AE",
+        "coda": "N",
+        "stress": 1
+      }
+    ],
+    "mist": [
+      {
+        "onset": "M",
+        "nucleus": "IH",
+        "coda": "ST",
+        "stress": 1
+      }
+    ],
+    "moon": [
+      {
+        "onset": "M",
+        "nucleus": "UW",
+        "coda": "N",
+        "stress": 1
+      }
+    ],
+    "morning": [
+      {
+        "onset": "M",
+        "nucleus": "AO",
+        "coda": "R",
+        "stress": 1
+      },
+      {
+        "onset": "N",
+        "nucleus": "IH",
+        "coda": "NG",
+        "stress": 0
+      }
+    ],
+    "move": [
+      {
+        "onset": "M",
+        "nucleus": "UW",
+        "coda": "V",
+        "stress": 1
+      }
+    ],
+    "moved": [
+      {
+        "onset": "M",
+        "nucleus": "UW",
+        "coda": "VD",
+        "stress": 1
+      }
+    ],
+    "near": [
+      {
+        "onset": "N",
+        "nucleus": "IH",
+        "coda": "R",
+        "stress": 1
+      }
+    ],
+    "night": [
+      {
+        "onset": "N",
+        "nucleus": "AY",
+        "coda": "T",
+        "stress": 1
+      }
+    ],
+    "not": [
+      {
+        "onset": "N",
+        "nucleus": "AA",
+        "coda": "T",
+        "stress": 1
+      }
+    ],
+    "of": [
+      {
+        "onset": "",
+        "nucleus": "AH",
+        "coda": "V",
+        "stress": 1
+      }
+    ],
+    "on": [
+      {
+        "onset": "",
+        "nucleus": "AA",
+        "coda": "N",
+        "stress": 1
+      }
+    ],
+    "one": [
+      {
+        "onset": "W",
+        "nucleus": "AH",
+        "coda": "N",
+        "stress": 1
+      }
+    ],
+    "over": [
+      {
+        "onset": "",
+        "nucleus": "OW",
+        "coda": "",
+        "stress": 1
+      },
+      {
+        "onset": "V",
+        "nucleus": "ER",
+        "coda": "",
+        "stress": 0
+      }
+    ],
+    "pale": [
+      {
+        "onset": "P",
+        "nucleus": "EY",
+        "coda": "L",
+        "stress": 1
+      }
+    ],
+    "passed": [
+      {
+        "onset": "P",
+        "nucleus": "AE",
+        "coda": "ST",
+        "stress": 1
+      }
+    ],
+    "path": [
+      {
+        "onset": "P",
+        "nucleus": "AE",
+        "coda": "TH",
+        "stress": 1
+      }
+    ],
+    "rain": [
+      {
+        "onset": "R",
+        "nucleus": "EY",
+        "coda": "N",
+        "stress": 1
+      }
+    ],
+    "ran": [
+      {
+        "onset": "R",
+        "nucleus": "AE",
+        "coda": "N",
+        "stress": 1
+      }
+    ],
+    "river": [
+      {
+        "onset": "R",
+        "nucleus": "IH",
+        "coda": "",
+        "stress": 1
+      },
+      {
+        "onset": "V",
+        "nucleus": "ER",
+        "coda": "",
+        "stress": 0
+      }
+    ],
+    "road": [
+      {
+        "onset": "R",
+        "nucleus": "OW",
+        "coda": "D",
+        "stress": 1
+      }
+    ],
+    "rose": [
+      {
+        "onset": "R",
+        "nucleus": "OW",
+        "coda": "Z",
+        "stress": 1
+      }
+    ],
+    "sea": [
+      {
+        "onset": "S",
+        "nucleus": "IY",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "she": [
+      {
+        "onset": "SH",
+        "nucleus": "IY",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "shone": [
+      {
+        "onset": "SH",
+        "nucleus": "OW",
+        "coda": "N",
+        "stress": 1
+      }
+    ],
+    "shore": [
+      {
+        "onset": "SH",
+        "nucleus": "AO",
+        "coda": "R",
+        "stress": 1
+      }
+    ],
+    "sky": [
+      {
+        "onset": "SK",
+        "nucleus": "AY",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "slow": [
+      {
+        "onset": "SL",
+        "nucleus": "OW",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "soft": [
+      {
+        "onset": "S",
+        "nucleus": "AA",
+        "coda": "FT",
+        "stress": 1
+      }
+    ],
+    "sound": [
+      {
+        "onset": "S",
+        "nucleus": "AW",
+        "coda": "ND",
+        "stress": 1
+      }
+    ],
+    "speak": [
+      {
+        "onset": "SP",
+        "nucleus": "IY",
+        "coda": "K",
+        "stress": 1
+      }
+    ],
+    "stars": [
+      {
+        "onset": "ST",
+        "nucleus": "AA",
+        "coda": "RZ",
+        "stress": 1
+      }
+    ],
+    "still": [
+      {
+        "onset": "ST",
+        "nucleus": "IH",
+        "coda": "L",
+        "stress": 1
+      }
+    ],
+    "stone": [
+      {
+        "onset": "ST",
+        "nucleus": "OW",
+        "coda": "N",
+        "stress": 1
+      }
+    ],
+    "stood": [
+      {
+        "onset": "ST",
+        "nucleus": "UH",
+        "coda": "D",
+        "stress": 1
+      }
+    ],
+    "sun": [
+      {
+        "onset": "S",
+        "nucleus": "AH",
+        "coda": "N",
+        "stress": 1
+      }
+    ],
+    "swift": [
+      {
+        "onset": "SW",
+        "nucleus": "IH",
+        "coda": "FT",
+        "stress": 1
+      }
+    ],
+    "the": [
+      {
+        "onset": "DH",
+        "nucleus": "AH",
+        "coda": "",
+        "stress": 0
+      }
+    ],
+    "thin": [
+      {
+        "onset": "TH",
+        "nucleus": "IH",
+        "coda": "N",
+        "stress": 1
+      }
+    ],
+    "through": [
+      {
+        "onset": "THR",
+        "nucleus": "UW",
+        "coda": "",
+        "stress": 1
+      }
+    ],
+    "valley": [
+      {
+        "onset": "V",
+        "nucleus": "AE",
+        "coda": "",
+        "stress": 1
+      },
+      {
+        "onset": "L",
+        "nucleus": "IY",
+        "coda": "",
+        "stress": 0
+      }
+    ],
+    "walked": [
+      {
+        "onset": "W",
+        "nucleus": "AO",
+        "coda": "KT",
+        "stress": 1
+      }
+    ],
+    "warm": [
+      {
+        "onset": "W",
+        "nucleus": "AO",
+        "coda": "RM",
+        "stress": 1
+      }
+    ],
+    "was": [
+      {
+        "onset": "W",
+        "nucleus": "AA",
+        "coda": "Z",
+        "stress": 1
+      }
+    ],
+    "water": [
+      {
+        "onset": "W",
+        "nucleus": "AO",
+        "coda": "",
+        "stress": 1
+      },
+      {
+        "onset": "T",
+        "nucleus": "ER",
+        "coda": "",
+        "stress": 0
+      }
+    ],
+    "wide": [
+      {
+        "onset": "W",
+        "nucleus": "AY",
+        "coda": "D",
+        "stress": 1
+      }
+    ],
+    "wind": [
+      {
+        "onset": "W",
+        "nucleus": "AY",
+        "coda": "ND",
+        "stress": 1
+      }
+    ],
+    "wolf": [
+      {
+        "onset": "W",
+        "nucleus": "UH",
+        "coda": "LF",
+        "stress": 1
+      }
+    ],
+    "woman": [
+      {
+        "onset": "W",
+        "nucleus": "UH",
+        "coda": "",
+        "stress": 1
+      },
+      {
+        "onset": "M",
+        "nucleus": "AH",
+        "coda": "N",
+        "stress": 0
+      }
+    ],
+    "wood": [
+      {
+        "onset": "W",
+        "nucleus": "UH",
+        "coda": "D",
+        "stress": 1
+      }
+    ]
+  },
+  "decode_lexicon": {
+    ",EH,R,1": "air",
+    ",AH,ND,0": "and",
+    "B,ER,D,1": "bird",
+    "BL,UW,,1": "blew",
+    "B,ER,ND,1": "burned",
+    "B,AY,,1": "by",
+    "K,EY,M,1": "came",
+    "KL,IH,R,1": "clear",
+    "K,OW,LD,1": "cold",
+    "KR,OW,,1": "crow",
+    "D,AA,RK,1": "dark",
+    "D,AO,N,1": "dawn",
+    "D,EY,,1": "day",
+    "D,IY,P,1": "deep",
+    "D,IH,R,1": "deer",
+    "D,IH,D,1": "did",
+    "D,AO,G,1": "dog",
+    "F,EH,L,1": "fell",
+    "F,IY,LD,1": "field",
+    "F,AY,,1|,ER,,0": "fire",
+    "GR,UW,,1": "grew",
+    "GR,EY,,1": "grey",
+    "HH,IY,,1": "he",
+    "HH,IH,L,1": "hill",
+    ",IH,N,0": "in",
+    "L,EY,K,1": "lake",
+    "L,EY,,1": "lay",
+    "L,AY,T,1": "light",
+    "L,OW,,1": "low",
+    "M,AE,N,1": "man",
+    "M,IH,ST,1": "mist",
+    "M,UW,N,1": "moon",
+    "M,AO,R,1|N,IH,NG,0": "morning",
+    "M,UW,V,1": "move",
+    "M,UW,VD,1": "moved",
+    "N,IH,R,1": "near",
+    "N,AY,T,1": "night",
+    "N,AA,T,1": "not",
+    ",AH,V,1": "of",
+    ",AA,N,1": "on",
+    "W,AH,N,1": "one",
+    ",OW,,1|V,ER,,0": "over",
+    "P,EY,L,1": "pale",
+    "P,AE,ST,1": "passed",
+    "P,AE,TH,1": "path",
+    "R,EY,N,1": "rain",
+    "R,AE,N,1": "ran",
+    "R,IH,,1|V,ER,,0": "river",
+    "R,OW,D,1": "road",
+    "R,OW,Z,1": "rose",
+    "S,IY,,1": "sea",
+    "SH,IY,,1": "she",
+    "SH,OW,N,1": "shone",
+    "SH,AO,R,1": "shore",
+    "SK,AY,,1": "sky",
+    "SL,OW,,1": "slow",
+    "S,AA,FT,1": "soft",
+    "S,AW,ND,1": "sound",
+    "SP,IY,K,1": "speak",
+    "ST,AA,RZ,1": "stars",
+    "ST,IH,L,1": "still",
+    "ST,OW,N,1": "stone",
+    "ST,UH,D,1": "stood",
+    "S,AH,N,1": "sun",
+    "SW,IH,FT,1": "swift",
+    "DH,AH,,0": "the",
+    "TH,IH,N,1": "thin",
+    "THR,UW,,1": "through",
+    "V,AE,,1|L,IY,,0": "valley",
+    "W,AO,KT,1": "walked",
+    "W,AO,RM,1": "warm",
+    "W,AA,Z,1": "was",
+    "W,AO,,1|T,ER,,0": "water",
+    "W,AY,D,1": "wide",
+    "W,AY,ND,1": "wind",
+    "W,UH,LF,1": "wolf",
+    "W,UH,,1|M,AH,N,0": "woman",
+    "W,UH,D,1": "wood"
+  },
+  "decode_lexicon_nostress": {
+    ",EH,R": "air",
+    ",AH,ND": "and",
+    "B,ER,D": "bird",
+    "BL,UW,": "blew",
+    "B,ER,ND": "burned",
+    "B,AY,": "by",
+    "K,EY,M": "came",
+    "KL,IH,R": "clear",
+    "K,OW,LD": "cold",
+    "KR,OW,": "crow",
+    "D,AA,RK": "dark",
+    "D,AO,N": "dawn",
+    "D,EY,": "day",
+    "D,IY,P": "deep",
+    "D,IH,R": "deer",
+    "D,IH,D": "did",
+    "D,AO,G": "dog",
+    "F,EH,L": "fell",
+    "F,IY,LD": "field",
+    "F,AY,|,ER,": "fire",
+    "GR,UW,": "grew",
+    "GR,EY,": "grey",
+    "HH,IY,": "he",
+    "HH,IH,L": "hill",
+    ",IH,N": "in",
+    "L,EY,K": "lake",
+    "L,EY,": "lay",
+    "L,AY,T": "light",
+    "L,OW,": "low",
+    "M,AE,N": "man",
+    "M,IH,ST": "mist",
+    "M,UW,N": "moon",
+    "M,AO,R|N,IH,NG": "morning",
+    "M,UW,V": "move",
+    "M,UW,VD": "moved",
+    "N,IH,R": "near",
+    "N,AY,T": "night",
+    "N,AA,T": "not",
+    ",AH,V": "of",
+    ",AA,N": "on",
+    "W,AH,N": "one",
+    ",OW,|V,ER,": "over",
+    "P,EY,L": "pale",
+    "P,AE,ST": "passed",
+    "P,AE,TH": "path",
+    "R,EY,N": "rain",
+    "R,AE,N": "ran",
+    "R,IH,|V,ER,": "river",
+    "R,OW,D": "road",
+    "R,OW,Z": "rose",
+    "S,IY,": "sea",
+    "SH,IY,": "she",
+    "SH,OW,N": "shone",
+    "SH,AO,R": "shore",
+    "SK,AY,": "sky",
+    "SL,OW,": "slow",
+    "S,AA,FT": "soft",
+    "S,AW,ND": "sound",
+    "SP,IY,K": "speak",
+    "ST,AA,RZ": "stars",
+    "ST,IH,L": "still",
+    "ST,OW,N": "stone",
+    "ST,UH,D": "stood",
+    "S,AH,N": "sun",
+    "SW,IH,FT": "swift",
+    "DH,AH,": "the",
+    "TH,IH,N": "thin",
+    "THR,UW,": "through",
+    "V,AE,|L,IY,": "valley",
+    "W,AO,KT": "walked",
+    "W,AO,RM": "warm",
+    "W,AA,Z": "was",
+    "W,AO,|T,ER,": "water",
+    "W,AY,D": "wide",
+    "W,AY,ND": "wind",
+    "W,UH,LF": "wolf",
+    "W,UH,|M,AH,N": "woman",
+    "W,UH,D": "wood"
+  }
+}
