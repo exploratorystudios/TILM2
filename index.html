@@ -2064,6 +2064,7 @@ async function autoLoadDefaults() {
         size: parseInt(resp.headers.get('content-length') || '0'),
         text: () => resp.text(),
         arrayBuffer: () => resp.arrayBuffer(),
+        json: () => resp.json(),
       };
       await load(fakeFile);
       anyLoaded = true;
@@ -2099,8 +2100,8 @@ async function loadVocabFile(file) {
   console.log('[TILM2] Loading vocab/data JSON:', file.name, file.size, 'bytes');
   setStatus('Parsing JSON...', 'gen');
   try {
-    const text = await file.text();
-    const data = JSON.parse(text);
+    // Use native resp.json() if available (faster for large files, no text intermediate)
+    const data = file.json ? await file.json() : JSON.parse(await file.text());
     trainingWindows = data.windows || null;
     const vocab = data.vocab || (
       Array.isArray(data.onsets) && Array.isArray(data.nuclei) && Array.isArray(data.codas)
@@ -2122,9 +2123,9 @@ async function loadVocabFile(file) {
     vocabData.codas.forEach((v, i) => vocabData.coda_to_idx[v] = i);
     vocabData.roles.forEach((v, i) => vocabData.role_to_idx[v] = i);
 
-    // Build phonotactic mask from windows
+    // Defer phonotactic mask build so it doesn't block the UI or delay status updates
     if (trainingWindows && trainingWindows.length > 0) {
-      buildPhonoMask(trainingWindows);
+      setTimeout(() => buildPhonoMask(trainingWindows), 0);
     }
 
     document.getElementById('json-btn').textContent = '✓ ' + file.name;
