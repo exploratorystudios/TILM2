@@ -4,6 +4,9 @@ A complete pipeline for training a small autoregressive language model on a PC a
 
 ---
 
+
+NOTE: When running inference, be sure to use only words in vocab_words.txt. The model has only been trained on those 78 words.
+
 ## Requirements
 
 ```
