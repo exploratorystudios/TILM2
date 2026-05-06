@@ -2043,30 +2043,29 @@ setStatus('Loading model files...', 'gen');
 // ============================================================
 // Auto-loader: fetch data/ files on GitHub Pages boot
 // ============================================================
-function makeFakeFile(name, buffer) {
-  return {
-    name,
-    size: buffer.byteLength,
-    arrayBuffer: () => Promise.resolve(buffer),
-    text: () => Promise.resolve(new TextDecoder().decode(buffer)),
-  };
-}
-
 async function autoLoadDefaults() {
-  const files = [
-    { url: 'data/tilm2_weights.npz',      load: loadWeightsFile },
-    { url: 'data/training_data.json',     load: loadVocabFile },
-    { url: 'data/project_lexicon.json',   load: loadLexiconFile },
+  const toLoad = [
+    { url: 'data/tilm2_weights.npz',    load: loadWeightsFile },
+    { url: 'data/training_data.json',   load: loadVocabFile },
+    { url: 'data/project_lexicon.json', load: loadLexiconFile },
   ];
 
   let anyLoaded = false;
-  for (const { url, load } of files) {
+  for (const { url, load } of toLoad) {
     try {
-      setStatus(`Fetching ${url}...`, 'gen');
+      const name = url.split('/').pop();
+      setStatus(`Fetching ${name}...`, 'gen');
       const resp = await fetch(url);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const buf = await resp.arrayBuffer();
-      await load(makeFakeFile(url.split('/').pop(), buf));
+      // Wrap Response directly — .text() and .arrayBuffer() stream natively,
+      // avoiding a costly synchronous TextDecoder pass over large files.
+      const fakeFile = {
+        name,
+        size: parseInt(resp.headers.get('content-length') || '0'),
+        text: () => resp.text(),
+        arrayBuffer: () => resp.arrayBuffer(),
+      };
+      await load(fakeFile);
       anyLoaded = true;
     } catch (err) {
       console.warn(`[TILM2] Auto-load skipped ${url}:`, err.message);
@@ -2074,7 +2073,7 @@ async function autoLoadDefaults() {
   }
 
   if (!anyLoaded) {
-    setStatus('Auto-load unavailable (local file:// context). Use the load buttons or drop files below.', '');
+    setStatus('Auto-load unavailable. Use the load buttons or drop files below.', '');
   }
 }
 
