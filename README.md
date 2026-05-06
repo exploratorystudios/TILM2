@@ -1,6 +1,6 @@
 # TILM2 — Syllable-Level Language Model for TI-84 Plus CE
 
-A complete pipeline for training a small autoregressive language model on a PC and deploying it to a TI-84 Plus CE graphing calculator. The model generates poetry and prose using syllable-level tokens, with a 198-dimensional hidden layer factored into 6 parallel output heads (onset, nucleus, coda, stress, word-boundary, role). The architecture is built around the TI-84's 10×99 matrix limit and ~150 KB RAM constraint.
+A complete pipeline for training a small autoregressive language model on a PC and deploying it to a TI-84 Plus CE graphing calculator. The model generates poetry and prose using syllable-level tokens, with a 198-dimensional hidden layer factored into 6 parallel output heads (onset, nucleus, coda, stress, word-boundary, role). The architecture is built around the TI-84's matrix and list limits and ~150 KB RAM constraint.
 
 ---
 
