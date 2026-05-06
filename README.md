@@ -29,28 +29,38 @@ Generates a synthetic English prose corpus using scene-plan generation with pers
 ### Step 2 — Process the Corpus into Syllable Tokens
 
 ```bash
-python3 corpus_processor.py --corpus-dir corpus --output training_data.json
+python3 corpus_processor.py --corpus-dir corpus --cmu-dict data/cmudict.dict --output data/training_data.json
 ```
 
-Reads all `.txt` files from `corpus/`, segments them into syllables using the CMU Pronouncing Dictionary (`data/cmudict.dict`), and assigns onset, nucleus, coda, stress, word-boundary, and role tags to each token. Output is a JSON file of tagged syllable sequences ready for training.
+Reads all `.txt` files from `corpus/`, segments them into syllables using `data/cmudict.dict`, and assigns onset, nucleus, coda, stress, word-boundary, and role tags to each token. Output is written to `data/training_data.json`.
+
+---
+
+### Step 2b — Build the Project Lexicon
+
+```bash
+python3 build_project_lexicon.py --cmu-dict data/cmudict.dict --source corpus/thematic.txt --source data/seeds.txt --output data/project_lexicon.json
+```
+
+Builds the word→syllable map used by inference and the calculator seed encoder. Run this once after generating a corpus.
 
 ---
 
 ### Step 3 — Train the Model
 
 ```bash
-python3 tilm2_model.py --data training_data.json --save tilm2_weights --epochs 20 --lr 0.01 --lr-decay 0.95
+python3 tilm2_model.py --data data/training_data.json --save data/tilm2_weights --epochs 20 --lr 0.01 --lr-decay 0.95
 ```
 
-Trains the TILM2 model and saves checkpoints as `tilm2_weights.npz`. Key flags:
+Trains the TILM2 model and saves checkpoints as `data/tilm2_weights.npz`. Key flags:
 
 | Flag | Default | Description |
 |---|---|---|
-| `--data` | required | Path to `training_data.json` |
-| `--save` | required | Output prefix for `.npz` checkpoint |
-| `--epochs` | 20 | Training epochs |
+| `--data` | `training_data.json` | Path to tokenized training data |
+| `--save` | `tilm2_weights` | Output prefix for `.npz` checkpoint |
+| `--epochs` | 5 | Training epochs |
 | `--lr` | 0.01 | Initial learning rate |
-| `--lr-decay` | 0.95 | Per-epoch learning rate decay multiplier |
+| `--lr-decay` | 0.5 | Per-epoch learning rate decay multiplier |
 
 ---
 
@@ -58,13 +68,13 @@ Trains the TILM2 model and saves checkpoints as `tilm2_weights.npz`. Key flags:
 
 **Interactive:**
 ```bash
-python3 inference.py --weights tilm2_weights.npz --data training_data.json
+python3 inference.py --weights data/tilm2_weights.npz --data data/training_data.json --cmu-dict data/cmudict.dict --decode-lexicon data/project_lexicon.json
 ```
 Enter a seed phrase at the prompt and the model will generate a syllable sequence interactively.
 
 **Batch:**
 ```bash
-python3 batch_inference.py --weights tilm2_weights.npz --data training_data.json --seeds data/seeds.txt --output results.txt --runs 3 --temperature 0.7 --top-k 3
+python3 batch_inference.py --weights data/tilm2_weights.npz --data data/training_data.json --seeds data/seeds.txt --cmu-dict data/cmudict.dict --decode-lexicon data/project_lexicon.json --output results.txt --runs 3 --temperature 0.7 --top-k 3
 ```
 
 Runs `--runs` completions per seed line in `data/seeds.txt` and writes all results to `results.txt`. Adjust `--temperature` (higher = more varied) and `--top-k` (lower = more focused) to tune output quality.
@@ -85,7 +95,7 @@ This step converts a trained `.npz` checkpoint into native TI variable files rea
 
 **Recommended export (H1 precompute + H2 column-major + English runtime):**
 ```bash
-python3 build_ti_runtime.py --weights tilm2_weights.npz --data training_data.json --out-prefix ti_model --h1-precompute --h2-colmajor --english-runtime
+python3 build_ti_runtime.py --weights data/tilm2_weights.npz --data data/training_data.json --out-prefix ti_model --cmu-dict data/cmudict.dict --english-words data/vocab_words.txt --h1-precompute --h2-colmajor --english-runtime
 ```
 
 
@@ -180,11 +190,22 @@ A full generation run takes **2.5–3 hours**. Keep an eye on the calculator for
 
 ## Data Files
 
+Static files (committed to the repo):
+
 | File | Purpose |
 |---|---|
 | `data/cmudict.dict` | CMU Pronouncing Dictionary — required by the syllabifier |
 | `data/seeds.txt` | Seed prompts for batch inference, one per line |
 | `data/vocab_words.txt` | Known English words for seed validation on the calculator |
+| `data/vocab.json` | Vocab metadata for the web visualizer (auto-generated, small) |
+
+Generated files (produced by the pipeline, not committed):
+
+| File | Produced by |
+|---|---|
+| `data/training_data.json` | `corpus_processor.py` |
+| `data/project_lexicon.json` | `build_project_lexicon.py` |
+| `data/tilm2_weights.npz` | `tilm2_model.py` |
 
 ---
 
