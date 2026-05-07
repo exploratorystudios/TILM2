@@ -183,9 +183,13 @@ Select `SEED` from the main menu. The program will prompt for the number of word
 Enter each word one at a time when prompted. Words must exist in `vocab_words.txt`; unknown words are rejected. After the last word the program returns to the main menu.
 
 **3. RUN → GEN**
-Select `RUN` from the main menu, then select `GEN` from the run sub-menu. Generation begins immediately. Output is rendered to the graph screen as syllables accumulate into words.
+Select `RUN` from the main menu, then select `GEN` from the run sub-menu. Generation begins immediately.
 
 > **Garbage collection:** The TI-84 will periodically pause mid-run and display `Garbage Collect? (1=No, 2=Yes)`. Always press `2`. This is normal and will happen multiple times during a full run. Pressing `1` risks an out-of-memory crash.
+
+
+**3. DRAW**
+Select `DRAW` from the main menu to display the results.
 
 A full generation run takes **2.5–3 hours**. Keep an eye on the calculator for garbage collection prompts — missing one and letting it sit on `2` will abort the run.
 
