@@ -191,7 +191,7 @@ Select `RUN` from the main menu, then select `GEN` from the run sub-menu. Genera
 **3. DRAW**
 Select `DRAW` from the main menu to display the results.
 
-A full generation run takes **2.5–3 hours**. Keep an eye on the calculator for garbage collection prompts — missing one and letting it sit on `2` will abort the run.
+A full generation run takes **2.5–3 hours**. Keep an eye on the calculator for garbage collection prompts.
 
 ---
 
