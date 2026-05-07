@@ -178,7 +178,7 @@ Select `INIT` first. This unarchives all lists and matrices from flash storage i
 **2. SEED**
 Select `SEED` from the main menu. The program will prompt for the number of words in your seed phrase.
 
-> **Syllable limit:** The context window is 10 syllables. Count syllables, not words — "the moon rose" is 3 syllables, "beautiful remember" is already 5. Do not exceed 10 syllables total or the seed will be truncated. A good starting point is 3–5 short common words.
+> **Syllable limit:** The context window is 8 syllables. Count syllables, not words — "the moon rose" is 3 syllables, "beautiful remember" is already 5. Do not exceed 8 syllables total or the seed will be truncated. A good starting point is 3–5 short common words.
 
 Enter each word one at a time when prompted. Words must exist in `vocab_words.txt`; unknown words are rejected. After the last word the program returns to the main menu.
 
